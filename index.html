@@ -36,7 +36,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.47 var(--f);lett
 .wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top) + clamp(20px,5vw,56px)) calc(env(safe-area-inset-right) + max(5vw,16px)) calc(env(safe-area-inset-bottom) + 56px) calc(env(safe-area-inset-left) + max(5vw,16px))}
 .top h1{font-size:clamp(30px,5vw,40px);line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:0}
 .top p{margin:4px 0 0;color:var(--mute);font-size:17px}
-.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 10px);z-index:4;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;margin:24px 0 28px;background:var(--fill2);border-radius:10px;
+.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 10px);z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:2px;margin:24px 0 28px;background:var(--fill2);border-radius:10px;
  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
 .tabs a{display:flex;align-items:center;justify-content:center;min-height:36px;border-radius:8px;color:var(--ink);font-weight:500;font-size:15px;text-decoration:none}
 .tabs a[aria-current=page]{background:var(--card);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
@@ -172,6 +172,19 @@ button:active{opacity:.7}
 .tllist span{display:flex;align-items:center;gap:7px}
 .tllist small{color:var(--mute)}
 .tllist b{font-weight:600;font-variant-numeric:tabular-nums}
+.people{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.people span{background:var(--card);box-shadow:var(--shadow);border-radius:99px;padding:6px 14px;font-size:14px;font-weight:500}
+.people b{font-weight:600;margin-left:6px;color:var(--mute)}
+.srow{display:grid;grid-template-columns:3.4em 7.4em minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:14px 20px;position:relative}
+.srow+.srow::before{content:'';position:absolute;top:0;left:20px;right:0;height:1px;background:var(--line)}
+.srow .sid{font-size:13px;font-weight:600;color:var(--mute);font-variant-numeric:tabular-nums}
+.srow .stime{font-weight:600;white-space:nowrap}
+.srow .who{font-weight:500}
+.srow .st{font-size:13px;color:var(--mute);margin-top:2px}
+.srow .st.done{color:#248a3d}
+.srow button{min-height:36px;font-size:14px;padding:0 16px;border-radius:99px}
+.snote{font-size:13px;color:var(--mute);margin:16px 4px 0}
+@media(max-width:600px){.tabs a{font-size:14px}.srow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'sid btn' 'time btn' 'who btn';gap:2px 12px;padding:14px 16px}.srow+.srow::before{left:16px}.srow .sid{grid-area:sid}.srow .stime{grid-area:time;font-size:17px}.srow>div{grid-area:who;margin-top:4px}.srow button{grid-area:btn}}
 #tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--card);font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;display:none;white-space:nowrap}
 
 /* modal */
@@ -216,6 +229,7 @@ button:active{opacity:.7}
   <nav class="tabs" aria-label="Views">
     <a href="#count" data-v="count">Count</a>
     <a href="#overview" data-v="overview">Overview</a>
+    <a href="#schedule" data-v="schedule">Schedule</a>
     <a href="#dashboard" data-v="dashboard">Dashboard</a>
   </nav>
 
@@ -255,6 +269,11 @@ button:active{opacity:.7}
     </div>
     <div class="legend"><span><i class="dot" style="--c:var(--in)"></i>Went in</span><span><i class="dot" style="--c:var(--out)"></i>Came out</span><span><i class="dot" style="--c:var(--past)"></i>Walked past</span></div>
     <div id="overview"></div>
+  </section>
+
+  <section class="view" id="v-schedule">
+    <div class="bar" style="margin-top:0"><h2>Counting schedule</h2></div>
+    <div id="sched"></div>
   </section>
 
   <section class="view" id="v-dashboard">
@@ -323,14 +342,56 @@ const PLUS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h1
 const MINUS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
 function setView(v){
-  view=['count','overview','dashboard'].includes(v)?v:'count';
+  view=['count','overview','schedule','dashboard'].includes(v)?v:'count';
   for(const a of $$('.tabs a'))a.setAttribute('aria-current',a.dataset.v===view?'page':'false');
   for(const s of $$('.view'))s.classList.toggle('on',s.id==='v-'+view);
   render();
   const tabs=$('.tabs');if(tabs&&scrollY>tabs.offsetTop)scrollTo(0,tabs.offsetTop-12);
 }
 window.addEventListener('hashchange',()=>setView(location.hash.slice(1)));
-function render(){if(view==='count')renderCount();else if(view==='overview')renderOverview();else renderDash()}
+function render(){if(view==='count')renderCount();else if(view==='overview')renderOverview();else if(view==='schedule')renderSched();else renderDash()}
+
+/* ---------- schedule (from the MVP Tracker sheet) ---------- */
+const SCHEDULE=[
+  {id:'F01',day:1,start:'10:00',end:'10:30',who:'Kerem'},
+  {id:'F02',day:1,start:'12:00',end:'12:30',who:'Lili'},
+  {id:'F03',day:1,start:'14:00',end:'14:30',who:'Lili'},
+  {id:'F04',day:2,start:'11:00',end:'11:30',who:'Lester'},
+  {id:'F08',day:3,start:'14:00',end:'14:30',who:'Rishi'},
+  {id:'F09',day:3,start:'14:30',end:'15:00',who:'Rishi'},
+  {id:'F05',day:4,start:'10:00',end:'10:30',who:'Nathan'},
+  {id:'F06',day:4,start:'13:00',end:'13:30',who:'Nathan'},
+  {id:'F11',day:4,start:'18:00',end:'18:30',who:'Kerem'},
+  {id:'F07',day:5,start:'10:00',end:'10:30',who:'Lester'},
+];
+function weekDate(day){ // date of that weekday in the current Mon–Fri week (next week at weekends)
+  const d=new Date();d.setHours(12,0,0,0);let wd=d.getDay();
+  if(wd===0||wd===6){d.setDate(d.getDate()+(wd===6?2:1));wd=1}
+  d.setDate(d.getDate()+(day-wd));
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function matchSlot(x){return chrono().filter(s=>s.slot_date&&dateObj(s.slot_date).getDay()===x.day&&hm(s.start_time)===x.start).pop()}
+function renderSched(){
+  const box=$('#sched'),people={};
+  for(const x of SCHEDULE)people[x.who]=(people[x.who]||0)+1;
+  const done=SCHEDULE.filter(matchSlot).length;
+  const days=[1,2,3,4,5].map(d=>({d,items:SCHEDULE.filter(x=>x.day===d).sort((a,b)=>a.start.localeCompare(b.start))})).filter(g=>g.items.length);
+  box.innerHTML=`<div class="people">${Object.entries(people).map(([n,c])=>`<span>${esc(n)}<b>${c}</b></span>`).join('')}</div>
+  ${days.map(g=>`<div class="dayhead"><b>${DAYS[g.d]}</b><small>${g.items.length} slot${g.items.length>1?'s':''}</small></div><div class="group">
+    ${g.items.map(x=>{const m=matchSlot(x);
+      return `<div class="srow"><span class="sid">${x.id}</span><span class="stime">${x.start} – ${x.end}</span>
+        <div><div class="who">${esc(x.who)}</div><div class="st${m?' done':''}">${m?`Counted ${esc(shortDate(m.slot_date))}, ${fmt(tot(m))} people`:'Not counted yet'}</div></div>
+        ${m?`<button type="button" data-a="open" data-s="${esc(m.id)}">Open</button>`:`<button type="button" class="primary" data-a="start" data-x="${x.id}">Start</button>`}</div>`}).join('')}</div>`).join('')}
+  <p class="snote">${done} of ${SCHEDULE.length} slots counted. A slot counts as done once the app has a slot on that weekday with the same start time. Start fills in the new-slot form with the date, times, slot ID and observer.</p>`;
+}
+$('#sched').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  if(b.dataset.a==='open'){const id=b.dataset.s;location.hash='#count';requestAnimationFrame(()=>{const el=document.getElementById('slot-'+id);if(el){el.scrollIntoView({block:'start'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}});return}
+  const x=SCHEDULE.find(y=>y.id===b.dataset.x);if(!x)return;
+  location.hash='#count';
+  $('#nDate').value=weekDate(x.day);$('#nStart').value=x.start;$('#nEnd').value=x.end;$('#nPlace').value=`${x.id}, observer ${x.who}`;
+  requestAnimationFrame(()=>{$('#newForm').scrollIntoView({block:'start'});status(`${x.id} filled in for ${x.who}. Check the date, then tap Add slot.`,true)});
+});
 
 const CHEV='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const catName=k=>(CATS.find(c=>c[0]===k)||[,k])[1];
