@@ -240,6 +240,7 @@ button:active{opacity:.7}
         <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
         <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
         <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
+        <div class="wide"><label for="nWho">Your name</label><select id="nWho" required><option value="">Choose your name</option><option>Kerem</option><option>Lester</option><option>Lili</option><option>Nathan</option><option>Rishi</option></select></div>
         <div class="wide"><label for="nLoc">Location</label><select id="nLoc"><option>LSE Library — John Watkins Plaza</option></select></div>
         <div class="wide"><label for="nPlace">Notes</label><input id="nPlace" maxlength="120" placeholder="Optional"></div>
         <details class="paper" id="paper">
@@ -291,6 +292,7 @@ button:active{opacity:.7}
       <div><label for="eStart">Start</label><input type="time" id="eStart" required></div>
       <div><label for="eEnd">End</label><input type="time" id="eEnd"></div>
     </div>
+    <label for="eWho">Observer</label><select id="eWho" style="margin-bottom:14px"><option value="">Choose your name</option><option>Kerem</option><option>Lester</option><option>Lili</option><option>Nathan</option><option>Rishi</option></select>
     <label for="eLoc">Location</label><select id="eLoc" style="margin-bottom:14px"><option>LSE Library — John Watkins Plaza</option></select>
     <label for="ePlace">Notes</label><input id="ePlace" maxlength="120">
     <h3 style="margin:22px 0 10px">Counts</h3>
@@ -316,7 +318,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CATS=[['in','Went in','--in'],['out','Came out','--out'],['past','Walked past','--past']];
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const LOCK_ICON='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.2" fill="currentColor"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
-let taps=[],tapsOk=null;const openTl=new Set();
+let taps=[],tapsOk=null,pendingCode=null;const openTl=new Set();
 let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null,view='count',lastTap=null;
 
 const status=(t,live)=>{const el=$('#status');el.textContent=t;el.classList.toggle('live',!!live)};
@@ -370,7 +372,7 @@ function weekDate(day){ // date of that weekday in the current Mon–Fri week (n
   d.setDate(d.getDate()+(day-wd));
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
-function matchSlot(x){return chrono().filter(s=>s.slot_date&&dateObj(s.slot_date).getDay()===x.day&&hm(s.start_time)===x.start).pop()}
+function matchSlot(x){const c=chrono();return c.filter(s=>s.slot_code===x.id).pop()||c.filter(s=>!s.slot_code&&s.slot_date&&dateObj(s.slot_date).getDay()===x.day&&hm(s.start_time)===x.start).pop()}
 function renderSched(){
   const box=$('#sched'),people={};
   for(const x of SCHEDULE)people[x.who]=(people[x.who]||0)+1;
@@ -382,15 +384,15 @@ function renderSched(){
       return `<div class="srow"><span class="sid">${x.id}</span><span class="stime">${x.start} – ${x.end}</span>
         <div><div class="who">${esc(x.who)}</div><div class="st${m?' done':''}">${m?`Counted ${esc(shortDate(m.slot_date))}, ${fmt(tot(m))} people`:'Not counted yet'}</div></div>
         ${m?`<button type="button" data-a="open" data-s="${esc(m.id)}">Open</button>`:`<button type="button" class="primary" data-a="start" data-x="${x.id}">Start</button>`}</div>`}).join('')}</div>`).join('')}
-  <p class="snote">${done} of ${SCHEDULE.length} slots counted. A slot counts as done once the app has a slot on that weekday with the same start time. Start fills in the new-slot form with the date, times, slot ID and observer.</p>`;
+  <p class="snote">${done} of ${SCHEDULE.length} slots counted. Start fills in the new-slot form with this week’s date, the times and the observer, and links the slot to its ID.</p>`;
 }
 $('#sched').addEventListener('click',e=>{
   const b=e.target.closest('button[data-a]');if(!b)return;
   if(b.dataset.a==='open'){const id=b.dataset.s;location.hash='#count';requestAnimationFrame(()=>{const el=document.getElementById('slot-'+id);if(el){el.scrollIntoView({block:'start'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}});return}
   const x=SCHEDULE.find(y=>y.id===b.dataset.x);if(!x)return;
   location.hash='#count';
-  $('#nDate').value=weekDate(x.day);$('#nStart').value=x.start;$('#nEnd').value=x.end;$('#nPlace').value=`${x.id}, observer ${x.who}`;
-  requestAnimationFrame(()=>{$('#newForm').scrollIntoView({block:'start'});status(`${x.id} filled in for ${x.who}. Check the date, then tap Add slot.`,true)});
+  $('#nDate').value=weekDate(x.day);$('#nStart').value=x.start;$('#nEnd').value=x.end;$('#nWho').value=x.who;$('#nPlace').value='';pendingCode=x.id;
+  requestAnimationFrame(()=>{$('#newForm').scrollIntoView({block:'start'});status(`${x.id} filled in for ${x.who}. Check the details, then tap Add slot.`,true)});
 });
 
 const CHEV='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -447,7 +449,7 @@ function renderCount(){
     const conf=!L&&confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts for everyone?</b><button type="button" data-a="cancelDel">Keep it</button><button type="button" class="del" data-a="doDel" data-s="${id}">Delete slot</button></div>`:'';
     return `<article class="slot${L?' locked':''}" id="slot-${id}">
       <div class="head"><div><div class="hdate">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))}</div><div class="htime">${range(s)}</div>
-        <div class="hmeta">${L?`<span class="lock">${LOCK_ICON}Locked</span>`:'<span class="live">Counting</span>'}<span>${fmt(sum)} people</span>${dur?`<span>${dur} min</span>`:''}${s.place?`<span>${esc(s.place)}</span>`:''}</div></div>
+        <div class="hmeta">${L?`<span class="lock">${LOCK_ICON}Locked</span>`:'<span class="live">Counting</span>'}${s.observer?`<span>${esc(s.observer)}</span>`:''}${s.slot_code?`<span>${esc(s.slot_code)}</span>`:''}<span>${fmt(sum)} people</span>${dur?`<span>${dur} min</span>`:''}${s.place?`<span>${esc(s.place)}</span>`:''}</div></div>
         <div class="acts">${acts}</div></div>
       <div class="counters">${ctrs}</div>${conf}
       <button type="button" class="tltog" data-a="tl" data-s="${id}" aria-expanded="${openTl.has(s.id)}">${openTl.has(s.id)?'Hide tap times':'Show tap times'}${CHEV}</button>${openTl.has(s.id)?timeline(s):''}</article>`}).join('');
@@ -466,7 +468,7 @@ function renderOverview(){
     let dsum=0,dm=0;for(const s of d.items){dsum+=tot(s);dm+=mins(s.start_time,s.end_time)}
     return `<div class="dayhead"><b>${esc(dayOf(d.date))} ${esc(fmtDate(d.date))}</b><small>${d.items.length} slot${d.items.length>1?'s':''}, ${fmt(dsum)} people</small></div><div class="group">
     ${d.items.map(s=>{const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=tot(s),dur=mins(s.start_time,s.end_time);
-      return `<a class="orow" href="#count" data-go="${esc(s.id)}"><div class="t">${range(s)}<small>${dur?dur+' min':'No end time'}${s.locked?', locked':''}</small></div>
+      return `<a class="orow" href="#count" data-go="${esc(s.id)}"><div class="t">${range(s)}<small>${s.observer?esc(s.observer)+', ':''}${dur?dur+' min':'No end time'}${s.locked?', locked':''}</small></div>
       <div><div class="nums"><span>In<b>${t.in}</b></span><span>Out<b>${t.out}</b></span><span>Past<b>${t.past}</b></span></div>${stack(t,sum,hm(s.start_time))}${s.place?`<div class="note">${esc(s.place)}</div>`:''}</div>
       <div class="tot">${fmt(sum)}<small>${dur&&sum?Math.round(sum/dur*60)+' per hour':'people'}</small></div></a>`}).join('')}</div>`}).join('');
 }
@@ -603,7 +605,7 @@ $('#list').addEventListener('click',async e=>{
   else if(a==='doDel'){confirmDel=null;const {error}=await sb.from('slots').delete().eq('id',id);
     if(error)status('Could not delete: '+errMsg(error));else{slots=slots.filter(x=>x.id!==id);render();status('Slot deleted',true)}}
   else if(a==='edit'){const s=slots.find(x=>x.id===id);if(!s||s.locked)return;editId=id;
-    $('#eDate').value=s.slot_date||'';$('#eStart').value=hm(s.start_time);$('#eEnd').value=hm(s.end_time);$('#ePlace').value=s.place||'';
+    $('#eDate').value=s.slot_date||'';$('#eStart').value=hm(s.start_time);$('#eEnd').value=hm(s.end_time);$('#ePlace').value=s.place||'';$('#eWho').value=s.observer||'';
     $('#eIn').value=cnt(s,'in');$('#eOut').value=cnt(s,'out');$('#ePast').value=cnt(s,'past');
     $('#modal').classList.add('on')}
 });
@@ -611,12 +613,14 @@ $('#list').addEventListener('click',async e=>{
 const num=id=>Math.max(0,Math.round(Number($(id).value)||0));
 $('#newForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!sb){status('Not connected yet.');return}
-  const paper=$('#paper').open,row={slot_date:$('#nDate').value,start_time:$('#nStart').value,end_time:$('#nEnd').value||null,place:$('#nPlace').value.trim()||null,in_count:paper?num('#nIn'):0,out_count:paper?num('#nOut'):0,past_count:paper?num('#nPast'):0};
+  const who=$('#nWho').value;if(!who){status('Choose your name first.');$('#nWho').focus();return}
+  try{localStorage.setItem('ffc-who',who)}catch(err){}
+  const paper=$('#paper').open,row={observer:who,slot_code:pendingCode||null,slot_date:$('#nDate').value,start_time:$('#nStart').value,end_time:$('#nEnd').value||null,place:$('#nPlace').value.trim()||null,in_count:paper?num('#nIn'):0,out_count:paper?num('#nOut'):0,past_count:paper?num('#nPast'):0};
   const has=row.in_count||row.out_count||row.past_count,lock=paper&&$('#nLock').checked&&has;
   if(lock)row.locked=true;
   const {data,error}=await sb.from('slots').insert(row).select().single();
-  if(error){status('Could not add slot: '+errMsg(error));return}
-  replace(data);
+  if(error){status(/observer|slot_code/.test(errMsg(error))?'Run the name update SQL in Supabase first, then try again.':'Could not add slot: '+errMsg(error));return}
+  pendingCode=null;replace(data);
   if(has)logExtra(data.id,{in:row.in_count,out:row.out_count,past:row.past_count},'paper');
   $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('#paper').open=false;
   status(lock?'Slot added with your counts and locked':has?'Slot added with your counts':'Slot added, start tapping',true);
@@ -628,21 +632,21 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()})
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#editForm').addEventListener('submit',async e=>{
   e.preventDefault();const id=editId;if(!id)return;
-  const upd={slot_date:$('#eDate').value,start_time:$('#eStart').value,end_time:$('#eEnd').value||null,place:$('#ePlace').value.trim()||null,in_count:num('#eIn'),out_count:num('#eOut'),past_count:num('#ePast')};
+  const upd={observer:$('#eWho').value||null,slot_date:$('#eDate').value,start_time:$('#eStart').value,end_time:$('#eEnd').value||null,place:$('#ePlace').value.trim()||null,in_count:num('#eIn'),out_count:num('#eOut'),past_count:num('#ePast')};
   const old=slots.find(x=>x.id===id),before={in:old?cnt(old,'in'):0,out:old?cnt(old,'out'):0,past:old?cnt(old,'past'):0};
   closeModal();
   const {data,error}=await sb.from('slots').update(upd).eq('id',id).select().single();
-  if(error){status('Could not save changes: '+errMsg(error));return}
+  if(error){status(/observer/.test(errMsg(error))?'Run the name update SQL in Supabase first.':'Could not save changes: '+errMsg(error));return}
   replace(data);status('Changes saved',true);
   logExtra(id,{in:upd.in_count-before.in,out:upd.out_count-before.out,past:upd.past_count-before.past},'edit');
 });
 
 function csv(){
   const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const rows=[['Date','Day','Start','End','Minutes','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour','Capture rate %','Locked']];
+  const rows=[['Date','Day','Start','End','Minutes','Slot ID','Observer','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour','Capture rate %','Locked']];
   for(const s of chrono()){
     const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?r1(n/d*60):'';
-    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past),t.in+t.past?Math.round(t.in/(t.in+t.past)*100):'',s.locked?'yes':'no']);
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',s.slot_code||'',s.observer||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past),t.in+t.past?Math.round(t.in/(t.in+t.past)*100):'',s.locked?'yes':'no']);
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
@@ -652,11 +656,11 @@ function download(text,name){
 }
 function tapCsv(){
   const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const rows=[['Slot date','Slot day','Slot start','Slot end','Tap date','Tap time','Category','Change','Source']];
+  const rows=[['Slot date','Slot day','Slot start','Slot end','Slot ID','Observer','Tap date','Tap time','Category','Change','Source']];
   const by=new Map(slots.map(s=>[s.id,s]));
   for(const t of taps.slice().sort((a,b)=>Date.parse(a.at)-Date.parse(b.at))){
     const s=by.get(t.slot_id);if(!s)continue;const d=new Date(t.at);
-    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d.toLocaleDateString('en-CA'),d.toLocaleTimeString('en-GB'),catName(t.field),t.delta,t.source==='tap'?'tap':t.source==='paper'?'from paper':'manual edit']);
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),s.slot_code||'',s.observer||'',d.toLocaleDateString('en-CA'),d.toLocaleTimeString('en-GB'),catName(t.field),t.delta,t.source==='tap'?'tap':t.source==='paper'?'from paper':'manual edit']);
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
@@ -666,6 +670,7 @@ for(const b of $$('.csvCopy'))b.addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(csv());status('CSV copied, paste it into Excel or Google Sheets',true)}catch(e){status('Copy did not work here. Use Download CSV instead.')}
 });
 
+try{const w=localStorage.getItem('ffc-who');if(w)$('#nWho').value=w}catch(e){}
 $('#nDate').value=today();$('#nStart').value=nowTime();$('#nEnd').value=nowTime(30);
 setView(location.hash.slice(1));
 

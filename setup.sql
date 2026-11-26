@@ -135,3 +135,8 @@ exception when duplicate_object then null;
 end $$;
 
 notify pgrst, 'reload schema';
+
+-- update 4: observer and slot ID
+alter table public.slots add column if not exists observer text;
+alter table public.slots add column if not exists slot_code text;
+notify pgrst, 'reload schema';
