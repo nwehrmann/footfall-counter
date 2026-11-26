@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Library Footfall Counter</title>
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Footfall">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f3ef,#121314);--card:light-dark(#fff,#1c1d1f);--ink:light-dark(#141414,#f1f0ec);--mute:light-dark(#5f5f5a,#a3a29c);--line:light-dark(#dcdad3,#33343a);
+--in:light-dark(#0a7a5c,#3fcf9f);--out:light-dark(#c2410c,#ff8a4c);--past:light-dark(#4b5bd6,#8c99ff);--danger:light-dark(#b91c1c,#ff6b6b)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1100px;margin:0 auto;padding:max(env(safe-area-inset-top),clamp(20px,4vw,48px)) max(4vw,14px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(4vw,14px,env(safe-area-inset-left))}
+h1{font:800 clamp(30px,5vw,46px)/1.05 Archivo,sans-serif;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 22px;max-width:62ch}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
+.form .wide,.form .go,.paper{grid-column:1/-1}
+.paper{border-top:1px solid var(--line);padding-top:10px}
+.paper summary{cursor:pointer;font-weight:600;min-height:32px;display:flex;align-items:center}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px}
+label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:4px}
+input,textarea{width:100%;font:16px Inter,sans-serif;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);min-height:44px}
+input:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--past);outline-offset:2px}
+button{font:600 15px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:28px 0 12px}
+.bar h2{font:700 22px Archivo,sans-serif;margin:0}
+.bar .btns{display:flex;gap:8px;flex-wrap:wrap}
+.status{font-size:14px;color:var(--mute);min-height:20px;margin-top:8px}
+.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.when{font:700 20px/1.2 Archivo,sans-serif}
+.when span{white-space:nowrap}
+.meta{color:var(--mute);font-size:14px;margin-top:2px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{min-height:38px;font-size:14px}
+.counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ctr{border-radius:12px;padding:12px;border:2px solid var(--c);display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.ctr .nm{font-weight:600;color:var(--c);font-size:15px}
+.ctr .n{font:800 clamp(34px,6vw,48px)/1 Archivo,sans-serif;font-variant-numeric:tabular-nums;text-align:right}
+.ctr .plus{grid-column:1/-1;display:grid;grid-template-columns:56px 1fr;gap:8px}
+.ctr .plus button{min-height:64px;font:800 28px Archivo,sans-serif}
+.ctr .add{background:var(--c);color:var(--card);border-color:var(--c)}
+.ctr .add:active{transform:scale(.97)}
+.ctr .rate{grid-column:1/-1;font-size:13px;color:var(--mute)}
+.confirm{margin-top:12px;padding:12px;border-radius:10px;border:1px solid var(--danger);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.confirm b{flex:1 1 220px;color:var(--danger)}
+.del{background:var(--danger);color:#fff;border-color:var(--danger)}
+.empty{color:var(--mute);padding:28px;text-align:center;border:2px dashed var(--line);border-radius:14px}
+.modal{position:fixed;inset:0;background:rgb(0 0 0/.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.modal .panel{width:min(520px,100%);max-height:92vh;overflow-y:auto}
+.modal .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+@media(max-width:560px){.counters{grid-template-columns:1fr}.ctr{grid-template-columns:1fr auto auto}.ctr .plus{grid-column:auto;grid-row:1/3;grid-template-columns:48px 72px}.ctr .rate{grid-column:1/2}}
+@media(prefers-reduced-motion:reduce){.ctr .add:active{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Library footfall counter</h1>
+  <p class="sub">Make a slot for each counting session, then tap to count people who go in, come out or walk past. Every slot keeps its own separate count, and everyone with this link sees the same slots live.</p>
+
+  <form class="panel form" id="newForm">
+    <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
+    <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
+    <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
+    <div class="wide"><label for="nPlace">Location / notes (optional)</label><input id="nPlace" maxlength="120" placeholder="e.g. Main entrance, raining, exam week"></div>
+    <details class="paper">
+      <summary>Already counted on paper? Enter the totals (optional)</summary>
+      <div class="pgrid">
+        <div><label for="nIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="nIn" placeholder="0"></div>
+        <div><label for="nOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="nOut" placeholder="0"></div>
+        <div><label for="nPast">Walked past</label><input type="number" inputmode="numeric" min="0" step="1" id="nPast" placeholder="0"></div>
+      </div>
+    </details>
+    <div class="go"><button class="primary" type="submit" style="width:100%">Add slot</button></div>
+  </form>
+  <div class="status" id="status" role="status">Connecting…</div>
+
+  <div class="bar">
+    <h2 id="countLabel">Slots</h2>
+    <div class="btns"><button type="button" id="csvDl">Download CSV</button><button type="button" id="csvCopy">Copy CSV</button></div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="eTitle">
+  <form class="panel" id="editForm">
+    <h2 id="eTitle" style="font:700 22px Archivo,sans-serif;margin:0 0 14px">Edit slot</h2>
+    <div class="grid">
+      <div><label for="eDate">Date</label><input type="date" id="eDate" required></div>
+      <div><label for="eStart">Start</label><input type="time" id="eStart" required></div>
+      <div><label for="eEnd">End</label><input type="time" id="eEnd"></div>
+    </div>
+    <label for="ePlace">Location / notes</label><input id="ePlace" maxlength="120">
+    <p class="meta" style="margin:16px 0 8px">Counts: type the totals for this slot if you counted on paper or forgot to tap.</p>
+    <div class="grid">
+      <div><label for="eIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="eIn"></div>
+      <div><label for="eOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="eOut"></div>
+      <div><label for="ePast">Walked past</label><input type="number" inputmode="numeric" min="0" step="1" id="ePast"></div>
+    </div>
+    <div class="row"><button type="button" id="eCancel">Cancel</button><button class="primary" type="submit">Save</button></div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+{
+const SUPABASE_URL='https://cpesebxsuioragxbhrtf.supabase.co';
+const SUPABASE_KEY='sb_publishable_i_o4QyVnDcm3dqMozBzEvA_pImFSzW-';
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CATS=[['in','Went in','--in'],['out','Came out','--out'],['past','Walked past','--past']];
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null;
+
+const status=t=>{$('#status').textContent=t};
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const nowTime=(plus=0)=>{const d=new Date(Date.now()+plus*60000);d.setMinutes(Math.floor(d.getMinutes()/15)*15);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const dayOf=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return DAYS[new Date(y,m-1,d).getDay()]||''};
+const fmtDate=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
+const hm=s=>(s||'').slice(0,5);
+const mins=(a,b)=>{if(!a||!b)return 0;const [h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);let x=(h2*60+m2)-(h1*60+m1);if(x<0)x+=1440;return x};
+const cnt=(s,k)=>Number(s[k+'_count'])||0;
+const errMsg=e=>e?.message||String(e);
+
+function render(){
+  const list=$('#list');
+  const sorted=[...slots].sort((a,b)=>((b.slot_date||'')+(b.start_time||'')).localeCompare((a.slot_date||'')+(a.start_time||''))||String(b.created_at).localeCompare(String(a.created_at)));
+  $('#countLabel').textContent=sorted.length?`Slots (${sorted.length})`:'Slots';
+  if(!sorted.length){list.innerHTML=loaded?'<div class="empty">No slots yet. Add one above to start counting.</div>':'';return}
+  list.innerHTML=sorted.map(s=>{
+    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=t.in+t.out+t.past,dur=mins(s.start_time,s.end_time);
+    const ctrs=CATS.map(([k,nm,c])=>`<div class="ctr" style="--c:var(${c})"><div class="nm">${nm}</div><div class="n">${t[k]}</div>
+      <div class="plus"><button type="button" data-a="minus" data-s="${esc(s.id)}" data-k="${k}" aria-label="Minus one ${nm}">−</button><button type="button" class="add" data-a="plus" data-s="${esc(s.id)}" data-k="${k}" aria-label="Add one ${nm}">+</button></div>
+      <div class="rate">${sum?Math.round(t[k]/sum*100)+'% of slot':'—'}${dur?` · ${Math.round(t[k]/dur*60)}/hour`:''}</div></div>`).join('');
+    const conf=confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts? This can't be undone.</b><button type="button" data-a="cancelDel">Cancel</button><button type="button" class="del" data-a="doDel" data-s="${esc(s.id)}">Delete</button></div>`:'';
+    return `<section class="slot"><div class="head"><div><div class="when">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))} · <span>${esc(hm(s.start_time))}${s.end_time?'–'+esc(hm(s.end_time)):''}</span></div>
+      <div class="meta">${dur?dur+' min · ':''}${sum} people in this slot${s.place?' · '+esc(s.place):''}</div></div>
+      <div class="acts"><button type="button" data-a="edit" data-s="${esc(s.id)}">Edit / enter counts</button><button type="button" data-a="askDel" data-s="${esc(s.id)}">Delete</button></div></div>
+      <div class="counters">${ctrs}</div>${conf}</section>`}).join('');
+}
+
+async function load(){
+  const {data,error}=await sb.from('slots').select('*');
+  if(error){status('Could not load: '+errMsg(error));return}
+  slots=data||[];loaded=true;render();status('Live · synced with everyone');
+}
+function scheduleRefetch(){if(inflight)return;clearTimeout(refetchTimer);refetchTimer=setTimeout(load,250)}
+
+async function bump(id,k,d){
+  const s=slots.find(x=>x.id===id);if(!s)return;
+  if(d<0&&cnt(s,k)<=0)return;
+  s[k+'_count']=cnt(s,k)+d;render();
+  inflight++;
+  const {data,error}=await sb.rpc('bump',{p_id:id,p_field:k,p_delta:d});
+  inflight--;
+  if(error){s[k+'_count']=cnt(s,k)-d;render();status('Tap not saved: '+errMsg(error));return}
+  if(!inflight){const i=slots.findIndex(x=>x.id===id);if(i>=0&&data&&data.id){slots[i]=data;render()}}
+}
+
+$('#list').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-a]');if(!b||!sb)return;
+  const a=b.dataset.a,id=b.dataset.s;
+  if(a==='plus')bump(id,b.dataset.k,1);
+  else if(a==='minus')bump(id,b.dataset.k,-1);
+  else if(a==='askDel'){confirmDel=id;render()}
+  else if(a==='cancelDel'){confirmDel=null;render()}
+  else if(a==='doDel'){confirmDel=null;const {error}=await sb.from('slots').delete().eq('id',id);
+    if(error)status('Could not delete: '+errMsg(error));else{slots=slots.filter(x=>x.id!==id);render();status('Slot deleted')}}
+  else if(a==='edit'){const s=slots.find(x=>x.id===id);if(!s)return;editId=id;
+    $('#eDate').value=s.slot_date||'';$('#eStart').value=hm(s.start_time);$('#eEnd').value=hm(s.end_time);$('#ePlace').value=s.place||'';
+    $('#eIn').value=cnt(s,'in');$('#eOut').value=cnt(s,'out');$('#ePast').value=cnt(s,'past');
+    $('#modal').classList.add('on');$('#eDate').focus()}
+});
+
+const num=id=>Math.max(0,Math.round(Number($(id).value)||0));
+
+$('#newForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!sb){status('Not connected yet.');return}
+  const row={slot_date:$('#nDate').value,start_time:$('#nStart').value,end_time:$('#nEnd').value||null,place:$('#nPlace').value.trim()||null,in_count:num('#nIn'),out_count:num('#nOut'),past_count:num('#nPast')};
+  const {data,error}=await sb.from('slots').insert(row).select().single();
+  if(error){status('Could not add slot: '+errMsg(error));return}
+  slots.push(data);render();
+  $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('.paper').open=false;
+  status(row.in_count||row.out_count||row.past_count?'Slot added with your counts':'Slot added');
+});
+
+const closeModal=()=>{$('#modal').classList.remove('on');editId=null};
+$('#eCancel').addEventListener('click',closeModal);
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+$('#editForm').addEventListener('submit',async e=>{
+  e.preventDefault();const id=editId;if(!id)return;
+  const upd={slot_date:$('#eDate').value,start_time:$('#eStart').value,end_time:$('#eEnd').value||null,place:$('#ePlace').value.trim()||null,in_count:num('#eIn'),out_count:num('#eOut'),past_count:num('#ePast')};
+  closeModal();
+  const {data,error}=await sb.from('slots').update(upd).eq('id',id).select().single();
+  if(error){status('Could not update: '+errMsg(error));return}
+  const i=slots.findIndex(x=>x.id===id);if(i>=0)slots[i]=data;render();status('Slot updated');
+});
+
+function csv(){
+  const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const rows=[['Date','Day','Start','End','Minutes','Location/notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour']];
+  for(const s of [...slots].sort((a,b)=>((a.slot_date||'')+(a.start_time||'')).localeCompare((b.slot_date||'')+(b.start_time||'')))){
+    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?Math.round(n/d*600)/10:'';
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past)]);
+  }
+  return rows.map(r=>r.map(q).join(',')).join('\n');
+}
+$('#csvDl').addEventListener('click',()=>{
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv()],{type:'text/csv'}));a.download='footfall-'+today()+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+});
+$('#csvCopy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(csv());status('CSV copied. Paste it into Excel or Google Sheets.')}catch(e){status('Copy failed. Use Download CSV instead.')}
+});
+
+$('#nDate').value=today();$('#nStart').value=nowTime();$('#nEnd').value=nowTime(30);
+
+if(!window.supabase){status('Could not load the database library. Check your connection and reload.')}
+else{
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  load();
+  sb.channel('slots-live').on('postgres_changes',{event:'*',schema:'public',table:'slots'},scheduleRefetch).subscribe();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
+}
+}
+</script>
+</body>
+</html>
