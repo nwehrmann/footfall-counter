@@ -335,9 +335,19 @@ const CHEV='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.
 const catName=k=>(CATS.find(c=>c[0]===k)||[,k])[1];
 const catVar=k=>(CATS.find(c=>c[0]===k)||[,,'--mute'])[2];
 const clock=(ms,sec)=>new Date(ms).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:sec?'2-digit':undefined});
+// Live taps with corrections applied: each −1 cancels the most recent +1 of the same category in the same slot.
+function effectiveTaps(list){
+  const out=[],stacks={};
+  for(const t of list.filter(t=>t.source==='tap').sort((a,b)=>Date.parse(a.at)-Date.parse(b.at))){
+    const key=t.slot_id+'|'+t.field,st=stacks[key]||(stacks[key]=[]);
+    if(t.delta>0){for(let i=0;i<t.delta;i++){const e={...t,delta:1};st.push(e);out.push(e)}}
+    else{for(let i=0;i<-t.delta;i++){const e=st.pop();if(e)e.cancelled=true}}
+  }
+  return out.filter(t=>!t.cancelled);
+}
 function timeline(s){
   if(tapsOk===false)return '<div class="tl"><p class="tlsum">Tap times are not being recorded yet. Run the tap-log update in Supabase first.</p></div>';
-  const all=taps.filter(t=>t.slot_id===s.id),live=all.filter(t=>t.source==='tap');
+  const all=taps.filter(t=>t.slot_id===s.id),live=effectiveTaps(all),corrections=all.filter(t=>t.source==='tap'&&t.delta<0).length;
   if(!all.length)return '<div class="tl"><p class="tlsum">No tap times recorded for this slot yet. Every tap from now on is saved with its exact time.</p></div>';
   let chart='';
   if(live.length){
@@ -352,9 +362,9 @@ function timeline(s){
       const tipTxt=`${clock(from)}–${clock(from+ms)}: in ${x.in}, out ${x.out}, past ${x.past}`;
       return sums[i]?`<div class="tlc" data-tip="${esc(tipTxt)}"><div style="height:${(sums[i]/max*100).toFixed(1)}%">${CATS.map(([k,,c])=>x[k]>0?`<i style="--c:var(${c});flex:${x[k]}"></i>`:'').join('')}</div></div>`:`<div class="tlc nil" data-tip="${esc(tipTxt)}"><div></div></div>`}).join('')}</div>
       <div class="tlaxis"><span>${clock(start)}</span>${n>4?`<span>${clock(start+Math.floor(n/2)*ms)}</span>`:''}<span>${clock(start+n*ms)}</span></div>`;
-    chart=`<p class="tlsum">Taps per ${step===1?'minute':step+' minutes'}, ${live.length} tap${live.length>1?'s':''} recorded. Tap a bar for details.</p>`+chart;
+    chart=`<p class="tlsum">People per ${step===1?'minute':step+' minutes'}, ${live.length} counted${corrections?`, ${corrections} correction${corrections>1?'s':''} applied`:''}. Tap a bar for details.</p>`+chart;
   }
-  const list=all.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).map(t=>{const src=t.source==='paper'?' <small>from paper</small>':t.source==='edit'?' <small>manual edit</small>':'';
+  const list=all.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).map(t=>{const src=t.source==='paper'?' <small>from paper</small>':t.source==='edit'?' <small>manual edit</small>':t.delta<0?' <small>correction</small>':'';
     const when=t.source==='tap'?clock(Date.parse(t.at),true):new Date(t.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     return `<li><time>${esc(when)}</time><span><i class="dot" style="--c:var(${catVar(t.field)})"></i>${esc(catName(t.field))}${src}</span><b>${t.delta>0?'+':''}${t.delta}</b></li>`}).join('');
   return `<div class="tl">${chart}<ul class="tllist">${list}</ul></div>`;
@@ -460,7 +470,7 @@ function renderDash(){
       <div class="fact"><span>Walking past</span><b>${pct(a.past,a.sum)} of everyone observed</b></div>
       ${capSlots.length?`<div class="fact"><span>Highest capture rate</span><b>${esc(slotLbl(capSlots[0].s))}, ${Math.round(capSlots[0].c*100)}%</b></div>`:''}
       ${capSlots.length>1?`<div class="fact"><span>Lowest capture rate</span><b>${esc(slotLbl(capSlots[capSlots.length-1].s))}, ${Math.round(capSlots[capSlots.length-1].c*100)}%</b></div>`:''}
-      ${(()=>{const live=taps.filter(t=>t.source==='tap'&&t.delta>0);if(!live.length)return '';const m=new Map();
+      ${(()=>{const live=effectiveTaps(taps);if(!live.length)return '';const m=new Map();
         for(const t of live){const k=t.slot_id+'|'+Math.floor(Date.parse(t.at)/300000);m.set(k,(m.get(k)||0)+1)}
         let best=null;for(const [k,v] of m)if(!best||v>best[1])best=[k,v];
         const [sid,bk]=best[0].split('|'),st=+bk*300000,sl=slots.find(x=>x.id===sid);
