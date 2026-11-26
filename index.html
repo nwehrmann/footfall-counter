@@ -30,8 +30,8 @@ h1{font:800 clamp(30px,5vw,46px)/1.05 Archivo,sans-serif;margin:0 0 6px;text-wra
 .paper summary{cursor:pointer;font-weight:600;min-height:32px;display:flex;align-items:center}
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px}
 label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:4px}
-input,textarea{width:100%;font:16px Inter,sans-serif;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);min-height:44px}
-input:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--past);outline-offset:2px}
+input,textarea,select{width:100%;font:16px Inter,sans-serif;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);min-height:44px}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--past);outline-offset:2px}
 button{font:600 15px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;touch-action:manipulation}
 .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:28px 0 12px}
@@ -76,7 +76,8 @@ button{font:600 15px Inter,sans-serif;min-height:44px;padding:0 16px;border-radi
     <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
     <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
     <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
-    <div class="wide"><label for="nPlace">Location / notes (optional)</label><input id="nPlace" maxlength="120" placeholder="e.g. Main entrance, raining, exam week"></div>
+    <div class="wide"><label for="nLoc">Location</label><select id="nLoc"><option>LSE Library — John Watkins Plaza</option></select></div>
+    <div class="wide"><label for="nPlace">Notes (optional)</label><input id="nPlace" maxlength="120" placeholder="e.g. raining, exam week, event on campus"></div>
     <details class="paper">
       <summary>Already counted on paper? Enter the totals (optional)</summary>
       <div class="pgrid">
@@ -104,7 +105,8 @@ button{font:600 15px Inter,sans-serif;min-height:44px;padding:0 16px;border-radi
       <div><label for="eStart">Start</label><input type="time" id="eStart" required></div>
       <div><label for="eEnd">End</label><input type="time" id="eEnd"></div>
     </div>
-    <label for="ePlace">Location / notes</label><input id="ePlace" maxlength="120">
+    <label for="eLoc">Location</label><select id="eLoc" style="margin-bottom:10px"><option>LSE Library — John Watkins Plaza</option></select>
+    <label for="ePlace">Notes</label><input id="ePlace" maxlength="120">
     <p class="meta" style="margin:16px 0 8px">Counts: type the totals for this slot if you counted on paper or forgot to tap.</p>
     <div class="grid">
       <div><label for="eIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="eIn"></div>
@@ -123,6 +125,7 @@ const SUPABASE_KEY='sb_publishable_i_o4QyVnDcm3dqMozBzEvA_pImFSzW-';
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LOCATION='LSE Library — John Watkins Plaza';
 const CATS=[['in','Went in','--in'],['out','Came out','--out'],['past','Walked past','--past']];
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null;
@@ -150,7 +153,7 @@ function render(){
       <div class="rate">${sum?Math.round(t[k]/sum*100)+'% of slot':'—'}${dur?` · ${Math.round(t[k]/dur*60)}/hour`:''}</div></div>`).join('');
     const conf=confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts? This can't be undone.</b><button type="button" data-a="cancelDel">Cancel</button><button type="button" class="del" data-a="doDel" data-s="${esc(s.id)}">Delete</button></div>`:'';
     return `<section class="slot"><div class="head"><div><div class="when">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))} · <span>${esc(hm(s.start_time))}${s.end_time?'–'+esc(hm(s.end_time)):''}</span></div>
-      <div class="meta">${dur?dur+' min · ':''}${sum} people in this slot${s.place?' · '+esc(s.place):''}</div></div>
+      <div class="meta">${esc(LOCATION)} · ${dur?dur+' min · ':''}${sum} people${s.place?' · '+esc(s.place):''}</div></div>
       <div class="acts"><button type="button" data-a="edit" data-s="${esc(s.id)}">Edit / enter counts</button><button type="button" data-a="askDel" data-s="${esc(s.id)}">Delete</button></div></div>
       <div class="counters">${ctrs}</div>${conf}</section>`}).join('');
 }
@@ -215,10 +218,10 @@ $('#editForm').addEventListener('submit',async e=>{
 
 function csv(){
   const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const rows=[['Date','Day','Start','End','Minutes','Location/notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour']];
+  const rows=[['Date','Day','Start','End','Minutes','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour']];
   for(const s of [...slots].sort((a,b)=>((a.slot_date||'')+(a.start_time||'')).localeCompare((b.slot_date||'')+(b.start_time||'')))){
     const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?Math.round(n/d*600)/10:'';
-    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past)]);
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past)]);
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
