@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Library Footfall</title>
-<meta name="theme-color" content="#e7e9e6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#15181d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Footfall">
@@ -15,185 +15,184 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Idea: the hand-held tally clicker used for real footfall counts.
-   Counters are number wheels in dark windows; the rest stays quiet, on cool plaza-granite grey. */
+/* Quiet and clean: off-white ground, white cards, system type, colour only as small accents. */
 :root{color-scheme:light dark;
---ground:#e7e9e6;--paper:#fbfbf9;--ink:#1b2230;--mute:#5e6672;--line:#d3d6d1;--field:#f0f1ee;--joint:rgba(27,34,48,.05);
---window:#1b2230;--wheel:#262e3d;--digit:#f6f6f2;--zero:#5d6678;
---in:#007d66;--out:#c7501f;--past:#4c55c8;--danger:#b4232a;--track:#dcdfda;
---r-lg:22px;--r-md:14px;--r-sm:10px;
---f:'Schibsted Grotesk',-apple-system,system-ui,sans-serif;--n:'Barlow Condensed','Schibsted Grotesk',sans-serif}
+--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--mute:#6e6e73;--faint:#aeaeb2;--line:#e5e5ea;--fill:#f2f2f4;--fill2:#e8e8ed;
+--in:#0088a3;--out:#d46b08;--past:#6457d6;
+--in-t:#e3f3f6;--out-t:#fbeee2;--past-t:#ecebfb;
+--danger:#d70015;--link:#0071e3;--shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+--f:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',Inter,'Helvetica Neue',Arial,sans-serif}
 @media(prefers-color-scheme:dark){:root{
---ground:#15181d;--paper:#1e232a;--ink:#edeeea;--mute:#9aa1ab;--line:#303640;--field:#191d23;--joint:rgba(255,255,255,.035);
---window:#0c0f13;--wheel:#171b21;--digit:#f2f2ee;--zero:#4a5160;
---in:#2eb39a;--out:#e5753f;--past:#8790f0;--danger:#ff6b6b;--track:#2a3039}}
+--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--mute:#98989d;--faint:#636366;--line:#2c2c2e;--fill:#2c2c2e;--fill2:#3a3a3c;
+--in:#25a3ad;--out:#e07f22;--past:#8379ec;
+--in-t:#0f2e31;--out-t:#33230f;--past-t:#25223f;
+--danger:#ff453a;--link:#2997ff;--shadow:none}}
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--f);overflow-x:hidden;-webkit-tap-highlight-color:transparent;
- background-image:linear-gradient(var(--joint) 1px,transparent 1px),linear-gradient(90deg,var(--joint) 1px,transparent 1px);background-size:120px 60px;background-position:-1px -1px}
-.wrap{max-width:1080px;margin:0 auto;padding:calc(env(safe-area-inset-top) + clamp(18px,4vw,40px)) calc(env(safe-area-inset-right) + max(4vw,14px)) calc(env(safe-area-inset-bottom) + 48px) calc(env(safe-area-inset-left) + max(4vw,14px))}
-.top{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-.mark{width:48px;height:48px;border-radius:14px;background:var(--window);display:grid;place-items:center;flex:none}
-.mark svg{width:30px;height:30px}
-.top h1{font:800 clamp(26px,4.4vw,38px)/1 var(--f);letter-spacing:-.02em;margin:0}
-.top p{margin:4px 0 0;color:var(--mute);font-weight:500;font-size:15px}
-.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 8px);z-index:4;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px;margin:0 0 22px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 18px -10px rgba(27,34,48,.35)}
-.tabs a{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:11px;color:var(--mute);font-weight:600;text-decoration:none;font-size:15px}
-.tabs a[aria-current=page]{background:var(--ink);color:var(--paper)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.47 var(--f);letter-spacing:-.01em;overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top) + clamp(20px,5vw,56px)) calc(env(safe-area-inset-right) + max(5vw,16px)) calc(env(safe-area-inset-bottom) + 56px) calc(env(safe-area-inset-left) + max(5vw,16px))}
+.top h1{font-size:clamp(30px,5vw,40px);line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:0}
+.top p{margin:4px 0 0;color:var(--mute);font-size:17px}
+.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 10px);z-index:4;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;margin:24px 0 28px;background:var(--fill2);border-radius:10px;
+ -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+.tabs a{display:flex;align-items:center;justify-content:center;min-height:36px;border-radius:8px;color:var(--ink);font-weight:500;font-size:15px;text-decoration:none}
+.tabs a[aria-current=page]{background:var(--card);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
 .view{display:none}.view.on{display:block}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
-.newslot h2{margin:0 0 14px}
-.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
+.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+h2{font-size:22px;line-height:1.2;font-weight:700;letter-spacing:-.02em;margin:0}
+h2 small{font-weight:500;color:var(--mute);margin-left:4px}
+h3{font-size:17px;font-weight:600;margin:0 0 16px}
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin-top:16px}
 .form .wide,.form .go,.paper{grid-column:1/-1}
-.paper{border-top:1px dashed var(--line);padding-top:12px}
-.paper summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center;gap:10px;list-style:none}
+.paper summary{cursor:pointer;color:var(--link);font-weight:500;font-size:16px;min-height:40px;display:flex;align-items:center;list-style:none}
 .paper summary::-webkit-details-marker{display:none}
-.paper summary::before{content:'+';display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--field);border:1px solid var(--line);font:700 18px/1 var(--f);flex:none}
-.paper[open] summary::before{content:'−'}
-.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
-.lockopt{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:15px;color:var(--ink);font-weight:500}
-.lockopt input{width:22px;height:22px;min-height:0;padding:0;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--ink)}
-label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:5px}
-input,select{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;font:500 16px/1.3 var(--f);padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);background-color:var(--field);color:var(--ink);min-height:48px;margin:0}
+.paper[open] summary{color:var(--mute)}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:4px}
+.lockopt{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:15px;color:var(--ink)}
+.lockopt input{width:20px;height:20px;min-height:0;padding:0;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--ink)}
+label{display:block;font-size:13px;font-weight:500;color:var(--mute);margin:0 0 6px 2px}
+input,select{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;font:400 17px/1.3 var(--f);letter-spacing:-.01em;padding:12px 14px;border:0;border-radius:12px;background-color:var(--fill);color:var(--ink);min-height:48px;margin:0}
+input::placeholder{color:var(--faint)}
 input[type=date],input[type=time]{text-align:left}
 input::-webkit-date-and-time-value{text-align:left;margin:0}
 input::-webkit-datetime-edit{padding:0}
-select{padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 15px center}
-input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--past);outline-offset:2px}
-button{-webkit-appearance:none;appearance:none;font:600 15px var(--f);min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.ghost{background:transparent;border-color:transparent;color:var(--mute)}
-.status{font-size:14px;color:var(--mute);min-height:22px;margin:10px 4px 0;display:flex;align-items:center;gap:8px}
-.status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
-.status.live::before{background:var(--in)}
-.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:32px 0 14px}
+select{font-size:16px;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--past) 50%,transparent);outline-offset:2px}
+button{-webkit-appearance:none;appearance:none;font:600 15px var(--f);letter-spacing:-.01em;min-height:44px;padding:0 18px;border-radius:12px;border:0;background:var(--fill);color:var(--ink);cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;white-space:nowrap}
+button:active{opacity:.7}
+.primary{background:var(--ink);color:var(--card)}
+.ghost{background:transparent;color:var(--mute)}
+.status{font-size:13px;color:var(--mute);min-height:20px;margin:12px 4px 0;display:flex;align-items:center;gap:7px}
+.status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none}
+.status.live::before{background:#34c759}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:40px 0 16px}
 .bar .btns{display:flex;gap:8px;flex-wrap:wrap}
-h2{font:700 22px/1.2 var(--f);letter-spacing:-.01em;margin:0}
-h2 small{font-weight:500;color:var(--mute);font-size:16px;margin-left:6px}
-h3{font:700 17px/1.3 var(--f);margin:0 0 14px}
-.slot{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin-bottom:16px;scroll-margin-top:84px}
-.slot.locked{background:transparent;border-style:dashed}
+.bar .btns button{min-height:36px;font-size:14px;padding:0 14px;border-radius:99px;background:var(--card);box-shadow:var(--shadow)}
+
+/* slot */
+.slot{background:var(--card);border-radius:22px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);scroll-margin-top:80px}
 .slot.flash{animation:flash 1.4s ease}
-@keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--past)}100%{box-shadow:0 0 0 0 transparent}}
-.head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
-.cal{width:58px;flex:none;border-radius:14px;background:var(--field);border:1px solid var(--line);text-align:center;padding:6px 0 7px;line-height:1}
-.cal small{display:block;font-size:12px;font-weight:600;color:var(--mute)}
-.cal b{display:block;font:700 28px/1 var(--n);margin:3px 0 2px}
-.htxt{flex:1}
-.htime{font:700 22px/1.2 var(--f);letter-spacing:-.01em}
-.hsub{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--field);color:var(--mute);white-space:nowrap}
-.chip svg{width:12px;height:12px}
-.chip.live{color:var(--in)}
-.chip.live::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
-.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.acts button{min-height:40px;font-size:14px;padding:0 14px;white-space:nowrap}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,var(--past) 45%,transparent)}100%{box-shadow:var(--shadow)}}
+.head{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.hdate{font-size:14px;color:var(--mute);font-weight:500}
+.htime{font-size:26px;line-height:1.15;font-weight:700;letter-spacing:-.025em;margin-top:1px}
+.hmeta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:14px;color:var(--mute)}
+.hmeta .lock{display:inline-flex;align-items:center;gap:5px;color:var(--ink);font-weight:500}
+.hmeta .lock svg{width:12px;height:12px}
+.hmeta .live{display:inline-flex;align-items:center;gap:6px;color:#248a3d;font-weight:500}
+.hmeta .live::before{content:'';width:6px;height:6px;border-radius:50%;background:#34c759}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{min-height:36px;font-size:14px;padding:0 16px;border-radius:99px}
 .counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.clk{border-radius:18px;background:var(--field);padding:12px;display:grid;gap:10px}
-.clk .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 2px}
-.clk .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
-.sw{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none;display:inline-block}
-.clk .rate{font-size:13px;color:var(--mute);white-space:nowrap}
-.win{display:flex;justify-content:center;gap:4px;background:var(--window);border-radius:12px;padding:7px;box-shadow:inset 0 2px 6px rgba(0,0,0,.45);overflow:hidden}
-.win span{flex:1;max-width:46px;display:grid;place-items:center;height:58px;border-radius:7px;background:linear-gradient(var(--wheel),#2f3849 48%,#232a37 52%,var(--wheel));color:var(--digit);font:700 42px/1 var(--n);font-variant-numeric:tabular-nums;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-@media(prefers-color-scheme:dark){.win span{background:linear-gradient(var(--wheel),#232831 48%,#1a1e25 52%,var(--wheel))}}
-.win span.z{color:var(--zero)}
-.win span.roll{animation:roll .28s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes roll{from{transform:translateY(45%);opacity:.2}to{transform:none;opacity:1}}
-.win.small span{height:42px;font-size:30px;max-width:34px}
-.keys{display:grid;grid-template-columns:58px 1fr;gap:8px}
-.keys button{min-height:62px;padding:0;border-radius:14px;font:600 30px/1 var(--f)}
-.keys .minus{background:var(--paper);color:var(--mute)}
-.keys .add{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.22);font-weight:500}
-.keys .add:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
-.confirm{margin-top:14px;padding:14px;border-radius:var(--r-md);background:var(--field);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.confirm b{flex:1 1 220px}
-.del{background:var(--danger);color:#fff;border-color:var(--danger)}
-.empty{color:var(--mute);padding:36px 20px;text-align:center;border:1.5px dashed var(--line);border-radius:var(--r-lg);background:var(--paper)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;font-weight:500;margin:0 0 16px}
+.ctr{background:var(--fill);border-radius:18px;padding:16px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:14px}
+.ctr .info{min-width:0}
+.ctr .nm{font-size:14px;font-weight:500;color:var(--mute);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none;display:inline-block}
+.ctr .n{font-size:52px;line-height:1;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:8px;display:block}
+.ctr .n.bump{animation:bump .22s ease}
+@keyframes bump{40%{transform:scale(1.06)}}
+.ctr .rate{font-size:13px;color:var(--mute);margin-top:6px}
+.keys{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+@media(min-width:601px){.ctr{grid-template-columns:1fr}.ctr .keys{margin-top:-4px}}
+.keys button{padding:0;display:grid;place-items:center}
+.keys .minus{width:44px;height:44px;border-radius:50%;background:var(--card);color:var(--mute);font-size:22px;font-weight:400}
+.keys .add{width:76px;height:76px;border-radius:50%;background:var(--tint);color:var(--c);font-size:36px;font-weight:300}
+.keys svg{width:22px;height:22px}.keys .add svg{width:30px;height:30px}
+.locked .ctr{padding:14px 16px}
+.locked .ctr .n{font-size:36px;margin-top:6px}
+.confirm{margin-top:16px;padding:16px;border-radius:16px;background:var(--fill);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.confirm b{flex:1 1 220px;font-weight:600;font-size:15px}
+.del{background:var(--danger);color:#fff}
+.empty{color:var(--mute);padding:40px 20px;text-align:center;background:var(--card);border-radius:22px;box-shadow:var(--shadow);font-size:15px}
+
+/* overview */
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--mute);margin:0 0 16px 2px}
 .legend span{display:inline-flex;align-items:center;gap:7px}
-.day{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:6px 18px 4px;margin-bottom:16px}
-.dayhead{display:flex;align-items:center;gap:14px;padding:12px 0}
-.dayhead .cal{width:52px}
-.dayhead .cal b{font-size:24px}
-.dayhead div:last-child b{display:block;font-weight:700;font-size:17px}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;margin:28px 4px 10px}
+.dayhead:first-child{margin-top:0}
+.dayhead b{font-size:20px;font-weight:700;letter-spacing:-.02em}
 .dayhead small{color:var(--mute);font-size:14px}
-.orow{display:grid;grid-template-columns:6.6em minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:14px 0;border-top:1px solid var(--line);color:inherit;text-decoration:none;cursor:pointer}
-.orow .t{font-weight:700;white-space:nowrap}
-.orow .t small{display:block;font-weight:500;color:var(--mute);font-size:13px}
-.orow .nums{display:flex;gap:14px;font-size:14px;color:var(--mute);white-space:nowrap}
-.orow .nums b{color:var(--ink);font:700 19px/1 var(--n);margin-left:3px}
+.group{background:var(--card);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.orow{display:grid;grid-template-columns:7.2em minmax(0,1fr) auto;gap:4px 18px;align-items:center;padding:16px 20px;color:inherit;text-decoration:none;cursor:pointer;position:relative}
+.orow+.orow::before{content:'';position:absolute;top:0;left:20px;right:0;height:1px;background:var(--line)}
+.orow:active{background:var(--fill)}
+.orow .t{font-weight:600;white-space:nowrap;font-size:16px}
+.orow .t small{display:block;font-weight:400;color:var(--mute);font-size:13px}
+.orow .nums{display:flex;gap:16px;font-size:13px;color:var(--mute);white-space:nowrap}
+.orow .nums b{color:var(--ink);font-size:16px;font-weight:600;margin-left:4px;font-variant-numeric:tabular-nums}
 .orow .note{color:var(--mute);font-size:13px;margin-top:6px}
-.orow .tot{font:700 30px/1 var(--n);text-align:right;font-variant-numeric:tabular-nums}
-.orow .tot small{display:block;font:500 12px var(--f);color:var(--mute);margin-top:3px}
-.stackbar{display:flex;gap:2px;height:10px;margin-top:9px}
-.stackbar i{display:block;height:100%;border-radius:4px;background:var(--c)}
-.hero{display:grid;grid-template-columns:1.3fr 1fr;background:var(--window);color:#f4f5f1;border-radius:26px;overflow:hidden;margin-bottom:16px}
-.hero>div{padding:24px 26px}
-.hero .big{font:700 clamp(64px,11vw,112px)/.9 var(--n);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.hero p{margin:10px 0 0;color:#b3bac6;font-size:16px;max-width:30ch}
-.hero .cap{background:rgba(255,255,255,.05);border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;justify-content:center}
-.hero .cap .k{font-weight:600;color:#b3bac6;font-size:14px}
-.hero .cap .v{font:700 64px/1 var(--n);margin:4px 0 12px}
-.meter{display:flex;gap:2px;height:12px}
+.orow .tot{font-size:22px;font-weight:600;letter-spacing:-.02em;text-align:right;font-variant-numeric:tabular-nums}
+.orow .tot small{display:block;font-size:12px;font-weight:400;color:var(--mute);letter-spacing:0}
+.stackbar{display:flex;gap:2px;height:6px;margin-top:10px}
+.stackbar i{display:block;height:100%;border-radius:3px;background:var(--c)}
+
+/* dashboard */
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+.hero .big{font-size:clamp(56px,10vw,88px);line-height:1;font-weight:700;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.hero .k{font-size:15px;color:var(--mute);font-weight:500;margin-bottom:10px}
+.hero p{margin:12px 0 0;color:var(--mute);font-size:15px;max-width:34ch}
+.hero .v{font-size:clamp(44px,7vw,64px);line-height:1;font-weight:700;letter-spacing:-.04em}
+.meter{display:flex;gap:2px;height:8px;margin-top:16px}
 .meter i{border-radius:4px;background:var(--c)}
-.hero .cap small{display:block;color:#b3bac6;font-size:13px;margin-top:10px}
+.mlegend{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:8px}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.kpi{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px}
-.kpi .k{font-size:14px;font-weight:600;color:var(--mute);display:flex;align-items:center;gap:7px}
-.kpi .v{font:700 clamp(34px,5vw,44px)/1.05 var(--n);font-variant-numeric:tabular-nums;margin-top:6px}
-.kpi .d{font-size:13px;color:var(--mute)}
+.kpi .k{font-size:14px;font-weight:500;color:var(--mute);display:flex;align-items:center;gap:7px}
+.kpi .v{font-size:clamp(30px,4.4vw,38px);line-height:1.1;font-weight:700;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:8px}
+.kpi .d{font-size:13px;color:var(--mute);margin-top:2px}
 .charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .charts .full{grid-column:1/-1}
-.crow{display:grid;grid-template-columns:8em minmax(0,1fr) 3.2em;gap:12px;align-items:center;padding:6px 0;font-size:14px}
-.crow .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
-.crow .lb small{color:var(--mute);font-weight:500}
-.crow .val{text-align:right;font:700 19px/1 var(--n);font-variant-numeric:tabular-nums}
-.crow .stackbar{margin:0;height:18px}
-.cnote{font-size:13px;color:var(--mute);margin:12px 0 0}
-.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.fact{background:var(--field);border-radius:var(--r-md);padding:12px 14px}
-.fact span{display:block;font-size:13px;color:var(--mute);font-weight:600}
-.fact b{display:block;font-size:15px;margin-top:3px}
-#tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;font-weight:500;padding:6px 10px;border-radius:9px;display:none;white-space:nowrap}
-.modal{position:fixed;inset:0;background:rgba(15,18,24,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);z-index:5}
+.crow{display:grid;grid-template-columns:7.5em minmax(0,1fr) 2.8em;gap:12px;align-items:center;padding:7px 0;font-size:14px}
+.crow .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .lb small{color:var(--mute);font-size:13px}
+.crow .val{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.crow .stackbar{margin:0;height:14px}
+.crow .stackbar i{border-radius:4px}
+.cnote{font-size:13px;color:var(--mute);margin:14px 0 0}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px}
+.fact{padding:12px 0;border-top:1px solid var(--line)}
+.fact span{display:block;font-size:13px;color:var(--mute)}
+.fact b{display:block;font-size:15px;font-weight:600;margin-top:2px}
+#tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--card);font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;display:none;white-space:nowrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);z-index:5}
 .modal.on{display:flex}
-.modal .panel{width:min(520px,100%);max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
-.modal .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
-.row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
-@media(max-width:820px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero .cap{border-left:0;border-top:1px solid rgba(255,255,255,.08)}.facts{grid-template-columns:1fr 1fr}}
+.modal .card{width:min(500px,100%);max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:24px;padding:24px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.modal .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+
+@media(max-width:820px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.charts,.hero{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){
- .panel{padding:16px}.slot{padding:14px}
+ .card,.slot{padding:16px}
  .form,.modal .dt{grid-template-columns:1fr 1fr}
  .form>div:first-child,.modal .dt>div:first-child{grid-column:1/-1}
  .pgrid,.modal .grid:not(.dt){gap:8px}
- .bar .btns{width:100%}.bar .btns button{flex:1}
- .head{flex-wrap:wrap}.acts{width:100%;justify-content:stretch}.acts button{flex:1}
+ .acts{width:100%}.acts button{flex:1}
  .counters{grid-template-columns:1fr;gap:10px}
- .clk{grid-template-columns:minmax(0,1fr) 150px;grid-template-areas:"lab lab" "win keys";gap:8px;padding:10px}
- .clk .lab{grid-area:lab}.clk .win{grid-area:win}.clk .keys{grid-area:keys;grid-template-columns:52px 1fr}
- .clk .win span{height:56px;font-size:38px}
- .clk .keys button{min-height:70px}
- .locked .clk{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"lab win"}
- .locked .clk .lab{flex-direction:column;justify-content:center;gap:2px}
- .orow{grid-template-columns:minmax(0,1fr) auto}
+ .ctr{align-items:center;padding:14px 14px 14px 18px}
+ .ctr .n{font-size:46px}
+ .locked .counters{gap:6px}
+ .locked .ctr{grid-template-columns:1fr;padding:12px 16px;border-radius:14px}
+ .locked .ctr .info{display:flex;justify-content:space-between;align-items:center}
+ .locked .ctr .n{font-size:24px;margin:0;letter-spacing:-.02em}
+ .orow{grid-template-columns:minmax(0,1fr) auto;padding:14px 16px}
+ .orow+.orow::before{left:16px}
  .orow .t{grid-column:1/-1;display:flex;gap:8px;align-items:baseline}
  .orow .t small{display:inline}
- .crow{grid-template-columns:6.8em minmax(0,1fr) 2.6em;gap:8px}
+ .crow{grid-template-columns:6.4em minmax(0,1fr) 2.4em;gap:8px}
  .facts{grid-template-columns:1fr}
  .row button{flex:1}
- .hero>div{padding:20px}
 }
-@media(prefers-reduced-motion:reduce){.win span.roll,.slot.flash{animation:none}.keys .add:active{transform:none}}
+@media(prefers-reduced-motion:reduce){.ctr .n.bump,.slot.flash{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="mark" aria-hidden="true"><svg viewBox="0 0 30 30"><g stroke-linecap="round" stroke-width="3"><path d="M7 7v16" stroke="#2eb39a"/><path d="M12.5 7v16" stroke="#e5753f"/><path d="M18 7v16" stroke="#8790f0"/><path d="M23.5 7v16" stroke="#f2f2ee"/><path d="M4 20.5 27 9.5" stroke="#f2f2ee"/></g></svg></div>
-    <div><h1>Library footfall</h1><p>LSE Library, John Watkins Plaza</p></div>
+    <h1>Library footfall</h1>
+    <p>LSE Library, John Watkins Plaza</p>
   </header>
 
   <nav class="tabs" aria-label="Views">
@@ -203,16 +202,16 @@ h3{font:700 17px/1.3 var(--f);margin:0 0 14px}
   </nav>
 
   <section class="view" id="v-count">
-    <form class="panel newslot" id="newForm">
+    <form class="card" id="newForm">
       <h2>New slot</h2>
       <div class="form">
         <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
         <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
         <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
         <div class="wide"><label for="nLoc">Location</label><select id="nLoc"><option>LSE Library — John Watkins Plaza</option></select></div>
-        <div class="wide"><label for="nPlace">Notes</label><input id="nPlace" maxlength="120" placeholder="Optional: weather, exam week, events on campus"></div>
+        <div class="wide"><label for="nPlace">Notes</label><input id="nPlace" maxlength="120" placeholder="Optional"></div>
         <details class="paper" id="paper">
-          <summary>Counted on paper? Add your totals</summary>
+          <summary>Add counts from paper</summary>
           <div class="pgrid">
             <div><label for="nIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="nIn" placeholder="0"></div>
             <div><label for="nOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="nOut" placeholder="0"></div>
@@ -220,7 +219,7 @@ h3{font:700 17px/1.3 var(--f);margin:0 0 14px}
           </div>
           <label class="lockopt"><input type="checkbox" id="nLock" checked> Lock the slot after adding it</label>
         </details>
-        <div class="go"><button class="primary" type="submit" style="width:100%;min-height:50px">Add slot</button></div>
+        <div class="go"><button class="primary" type="submit" style="width:100%;min-height:50px;font-size:17px">Add slot</button></div>
       </div>
     </form>
     <div class="status" id="status" role="status">Connecting</div>
@@ -233,10 +232,10 @@ h3{font:700 17px/1.3 var(--f);margin:0 0 14px}
 
   <section class="view" id="v-overview">
     <div class="bar" style="margin-top:0">
-      <h2>Every slot, in order</h2>
+      <h2>All slots</h2>
       <div class="btns"><button type="button" class="csvDl">Download CSV</button></div>
     </div>
-    <div class="legend"><span><i class="sw" style="--c:var(--in)"></i>Went in</span><span><i class="sw" style="--c:var(--out)"></i>Came out</span><span><i class="sw" style="--c:var(--past)"></i>Walked past</span></div>
+    <div class="legend"><span><i class="dot" style="--c:var(--in)"></i>Went in</span><span><i class="dot" style="--c:var(--out)"></i>Came out</span><span><i class="dot" style="--c:var(--past)"></i>Walked past</span></div>
     <div id="overview"></div>
   </section>
 
@@ -248,16 +247,16 @@ h3{font:700 17px/1.3 var(--f);margin:0 0 14px}
 <div id="tip" role="tooltip"></div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="eTitle">
-  <form class="panel" id="editForm">
-    <h2 id="eTitle" style="margin:0 0 16px">Edit slot</h2>
+  <form class="card" id="editForm">
+    <h2 id="eTitle" style="margin:0 0 18px">Edit slot</h2>
     <div class="grid dt">
       <div><label for="eDate">Date</label><input type="date" id="eDate" required></div>
       <div><label for="eStart">Start</label><input type="time" id="eStart" required></div>
       <div><label for="eEnd">End</label><input type="time" id="eEnd"></div>
     </div>
-    <label for="eLoc">Location</label><select id="eLoc" style="margin-bottom:12px"><option>LSE Library — John Watkins Plaza</option></select>
+    <label for="eLoc">Location</label><select id="eLoc" style="margin-bottom:14px"><option>LSE Library — John Watkins Plaza</option></select>
     <label for="ePlace">Notes</label><input id="ePlace" maxlength="120">
-    <p style="margin:18px 0 10px;font-weight:600">Counts</p>
+    <h3 style="margin:22px 0 10px">Counts</h3>
     <div class="grid">
       <div><label for="eIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="eIn"></div>
       <div><label for="eOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="eOut"></div>
@@ -301,10 +300,8 @@ const fmt=n=>Number.isFinite(n)?n.toLocaleString('en-GB'):'—';
 const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
 const r1=n=>Math.round(n*10)/10;
 const range=s=>`${esc(hm(s.start_time))}${s.end_time?' – '+esc(hm(s.end_time)):''}`;
-function wheels(n,roll){
-  const str=String(n).padStart(3,'0'),lead=str.length-String(n).length;
-  return str.split('').map((d,i)=>`<span class="${i<lead?'z':''}${roll&&i===str.length-1?' roll':''}">${d}</span>`).join('');
-}
+const PLUS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const MINUS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
 function setView(v){
   view=['count','overview','dashboard'].includes(v)?v:'count';
@@ -319,21 +316,20 @@ function render(){if(view==='count')renderCount();else if(view==='overview')rend
 function renderCount(){
   const list=$('#list'),sorted=chrono().reverse();
   $('#countLabel').innerHTML=sorted.length?`Slots <small>${sorted.length}</small>`:'Slots';
-  if(!sorted.length){list.innerHTML=loaded?'<div class="empty">No slots yet. Add your first one above, then start tapping.</div>':'';return}
+  if(!sorted.length){list.innerHTML=loaded?'<div class="empty">No slots yet. Add one above to start counting.</div>':'';return}
   const tap=lastTap&&Date.now()-lastTap.t<400?lastTap:null;
   list.innerHTML=sorted.map(s=>{
     const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=tot(s),dur=mins(s.start_time,s.end_time),L=!!s.locked,id=esc(s.id);
-    const ctrs=CATS.map(([k,nm,c])=>`<div class="clk" style="--c:var(${c})">
-      <div class="lab"><span class="nm"><i class="sw"></i>${nm}</span><span class="rate">${dur&&sum?Math.round(t[k]/dur*60)+' per hour':sum?pct(t[k],sum):''}</span></div>
-      <div class="win${L?' small':''}" aria-label="${nm}: ${t[k]}">${wheels(t[k],tap&&tap.id===s.id&&tap.k===k)}</div>
-      ${L?'':`<div class="keys"><button type="button" class="minus" data-a="minus" data-s="${id}" data-k="${k}" aria-label="Minus one ${nm}">−</button><button type="button" class="add" data-a="plus" data-s="${id}" data-k="${k}" aria-label="Add one ${nm}">+</button></div>`}
+    const ctrs=CATS.map(([k,nm,c])=>`<div class="ctr" style="--c:var(${c});--tint:var(${c}-t)">
+      <div class="info"><div class="nm"><i class="dot"></i>${nm}</div><span class="n${tap&&tap.id===s.id&&tap.k===k?' bump':''}">${fmt(t[k])}</span>${L?'':`<div class="rate">${dur&&sum?Math.round(t[k]/dur*60)+' per hour':sum?pct(t[k],sum)+' of slot':'&nbsp;'}</div>`}</div>
+      ${L?'':`<div class="keys"><button type="button" class="minus" data-a="minus" data-s="${id}" data-k="${k}" aria-label="Minus one ${nm}">${MINUS}</button><button type="button" class="add" data-a="plus" data-s="${id}" data-k="${k}" aria-label="Add one ${nm}">${PLUS}</button></div>`}
     </div>`).join('');
     const acts=L?`<button type="button" data-a="unlock" data-s="${id}">Edit</button>`
-      :`<button type="button" data-a="edit" data-s="${id}">Edit</button><button type="button" class="primary" data-a="lock" data-s="${id}">Save &amp; lock</button><button type="button" class="ghost" data-a="askDel" data-s="${id}">Delete</button>`;
+      :`<button type="button" class="ghost" data-a="askDel" data-s="${id}">Delete</button><button type="button" data-a="edit" data-s="${id}">Edit</button><button type="button" class="primary" data-a="lock" data-s="${id}">Save &amp; lock</button>`;
     const conf=!L&&confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts for everyone?</b><button type="button" data-a="cancelDel">Keep it</button><button type="button" class="del" data-a="doDel" data-s="${id}">Delete slot</button></div>`:'';
     return `<article class="slot${L?' locked':''}" id="slot-${id}">
-      <div class="head">${cal(s.slot_date)}<div class="htxt"><div class="htime">${range(s)}</div>
-        <div class="hsub">${L?`<span class="chip">${LOCK_ICON}Locked</span>`:'<span class="chip live">Counting</span>'}<span class="chip">${fmt(sum)} people</span>${dur?`<span class="chip">${dur} min</span>`:''}${s.place?`<span class="chip">${esc(s.place)}</span>`:''}</div></div>
+      <div class="head"><div><div class="hdate">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))}</div><div class="htime">${range(s)}</div>
+        <div class="hmeta">${L?`<span class="lock">${LOCK_ICON}Locked</span>`:'<span class="live">Counting</span>'}<span>${fmt(sum)} people</span>${dur?`<span>${dur} min</span>`:''}${s.place?`<span>${esc(s.place)}</span>`:''}</div></div>
         <div class="acts">${acts}</div></div>
       <div class="counters">${ctrs}</div>${conf}</article>`}).join('');
 }
@@ -349,11 +345,11 @@ function renderOverview(){
   for(const s of c){const last=days[days.length-1];if(last&&last.date===s.slot_date)last.items.push(s);else days.push({date:s.slot_date,items:[s]})}
   box.innerHTML=days.map(d=>{
     let dsum=0,dm=0;for(const s of d.items){dsum+=tot(s);dm+=mins(s.start_time,s.end_time)}
-    return `<section class="day"><div class="dayhead">${cal(d.date)}<div><b>${esc(dayOf(d.date))} ${esc(fmtDate(d.date))}</b><small>${d.items.length} slot${d.items.length>1?'s':''}, ${fmt(dsum)} people${dm?`, ${dm} minutes counted`:''}</small></div></div>
+    return `<div class="dayhead"><b>${esc(dayOf(d.date))} ${esc(fmtDate(d.date))}</b><small>${d.items.length} slot${d.items.length>1?'s':''}, ${fmt(dsum)} people</small></div><div class="group">
     ${d.items.map(s=>{const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=tot(s),dur=mins(s.start_time,s.end_time);
       return `<a class="orow" href="#count" data-go="${esc(s.id)}"><div class="t">${range(s)}<small>${dur?dur+' min':'No end time'}${s.locked?', locked':''}</small></div>
       <div><div class="nums"><span>In<b>${t.in}</b></span><span>Out<b>${t.out}</b></span><span>Past<b>${t.past}</b></span></div>${stack(t,sum,hm(s.start_time))}${s.place?`<div class="note">${esc(s.place)}</div>`:''}</div>
-      <div class="tot">${fmt(sum)}<small>${dur&&sum?Math.round(sum/dur*60)+' per hour':'people'}</small></div></a>`}).join('')}</section>`}).join('');
+      <div class="tot">${fmt(sum)}<small>${dur&&sum?Math.round(sum/dur*60)+' per hour':'people'}</small></div></a>`}).join('')}</div>`}).join('');
 }
 $('#overview').addEventListener('click',e=>{
   const r=e.target.closest('.orow');if(!r)return;e.preventDefault();
@@ -386,31 +382,32 @@ function renderDash(){
   const busiest=perSlot.slice().sort((x,y)=>y.r-x.r)[0],quiet=perSlot.slice().sort((x,y)=>x.r-y.r)[0];
   const capSlots=c.filter(s=>cnt(s,'in')+cnt(s,'past')>=10).map(s=>({s,c:cnt(s,'in')/(cnt(s,'in')+cnt(s,'past'))})).sort((x,y)=>y.c-x.c);
   const slotLbl=s=>`${shortDate(s.slot_date)}, ${hm(s.start_time)}`;
-  const kpi=(label,val,sub,sw)=>`<div class="kpi"><div class="k">${sw?`<i class="sw" style="--c:var(${sw})"></i>`:''}${label}</div><div class="v">${val}</div><div class="d">${sub}</div></div>`;
+  const kpi=(label,val,sub,sw)=>`<div class="kpi card"><div class="k">${sw?`<i class="dot" style="--c:var(${sw})"></i>`:''}${label}</div><div class="v">${val}</div><div class="d">${sub}</div></div>`;
   const slotRows=timed.map(s=>{const m=mins(s.start_time,s.end_time),v={};for(const [kk] of CATS)v[kk]=cnt(s,kk)/m*60;return{label:`${esc(dateObj(s.slot_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}))} <small>${esc(hm(s.start_time))}</small>`,tip:slotLbl(s),v,total:v.in+v.out+v.past}});
   const byDay=[1,2,3,4,5,6,0].map(d=>{const l=c.filter(s=>dateObj(s.slot_date).getDay()===d),g=agg(l);return{label:DAYS[d].slice(0,3)+(l.length?` <small>${l.length} slot${l.length>1?'s':''}</small>`:''),tip:DAYS[d],v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll,n:g.min}}).filter(r=>r.n);
   const hours=[...new Set(timed.map(s=>+hm(s.start_time).slice(0,2)))].sort((x,y)=>x-y);
   const byHour=hours.map(h=>{const l=timed.filter(s=>+hm(s.start_time).slice(0,2)===h),g=agg(l);return{label:`${pad(h)}:00 <small>${l.length} slot${l.length>1?'s':''}</small>`,tip:`Slots starting ${pad(h)}:00–${pad(h)}:59`,v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll}});
   const capW=capture==null?0:capture*100;
   box.innerHTML=`
-  <section class="hero">
-    <div><div class="big">${fmt(a.sum)}</div><p>people observed at John Watkins Plaza across ${c.length} slot${c.length>1?'s':''} on ${days} day${days>1?'s':''}${a.min?`, ${r1(a.min/60)} hours of counting`:''}.</p></div>
-    <div class="cap"><div class="k">Capture rate</div><div class="v">${capture==null?'—':Math.round(capture*100)+'%'}</div>
-      <div class="meter" aria-hidden="true"><i style="--c:var(--in);flex:${capW||0.001}"></i><i style="--c:#6b7385;flex:${100-capW||0.001}"></i></div>
-      <small>of people approaching the library went in rather than walking past</small></div>
-  </section>
+  <div class="hero">
+    <div class="card"><div class="k">People observed</div><div class="big">${fmt(a.sum)}</div><p>Across ${c.length} slot${c.length>1?'s':''} on ${days} day${days>1?'s':''}${a.min?`, ${r1(a.min/60)} hours of counting in total`:''}.</p></div>
+    <div class="card"><div class="k">Capture rate</div><div class="v">${capture==null?'—':Math.round(capture*100)+'%'}</div>
+      <div class="meter" aria-hidden="true"><i style="--c:var(--in);flex:${capW||0.001}"></i><i style="--c:var(--past);flex:${100-capW||0.001}"></i></div>
+      <div class="mlegend"><span>Went in</span><span>Walked past</span></div>
+      <p>Share of people approaching the library who went in.</p></div>
+  </div>
   <div class="kpis">
     ${kpi('Went in',fmt(a.in),a.min?`${Math.round(a.rate('in'))} per hour`:'&nbsp;','--in')}
     ${kpi('Came out',fmt(a.out),a.min?`${Math.round(a.rate('out'))} per hour`:'&nbsp;','--out')}
     ${kpi('Walked past',fmt(a.past),a.min?`${Math.round(a.rate('past'))} per hour`:'&nbsp;','--past')}
     ${kpi('Net into library',(a.in-a.out>0?'+':'')+fmt(a.in-a.out),'went in minus came out')}
   </div>
-  <div class="legend"><span><i class="sw" style="--c:var(--in)"></i>Went in</span><span><i class="sw" style="--c:var(--out)"></i>Came out</span><span><i class="sw" style="--c:var(--past)"></i>Walked past</span></div>
+  <div class="legend"><span><i class="dot" style="--c:var(--in)"></i>Went in</span><span><i class="dot" style="--c:var(--out)"></i>Came out</span><span><i class="dot" style="--c:var(--past)"></i>Walked past</span></div>
   <div class="charts">
-    <div class="panel full"><h3>People per hour, slot by slot</h3>${rateChart(slotRows)}<p class="cnote">Per-hour rates make slots of different lengths comparable.${untimed?` ${untimed} slot${untimed>1?'s have':' has'} no end time, so ${untimed>1?'they are':'it is'} left out here.`:''}</p></div>
-    <div class="panel"><h3>By weekday</h3>${rateChart(byDay)}<p class="cnote">People per hour, all slots on that weekday combined.</p></div>
-    <div class="panel"><h3>By time of day</h3>${rateChart(byHour)}<p class="cnote">People per hour, grouped by the hour each slot started.</p></div>
-    <div class="panel full"><h3>Highlights</h3><div class="facts">
+    <div class="card full"><h3>People per hour, slot by slot</h3>${rateChart(slotRows)}<p class="cnote">Per-hour rates make slots of different lengths comparable.${untimed?` ${untimed} slot${untimed>1?'s have':' has'} no end time, so ${untimed>1?'they are':'it is'} left out here.`:''}</p></div>
+    <div class="card"><h3>By weekday</h3>${rateChart(byDay)}<p class="cnote">People per hour, all slots on that weekday combined.</p></div>
+    <div class="card"><h3>By time of day</h3>${rateChart(byHour)}<p class="cnote">People per hour, grouped by the hour each slot started.</p></div>
+    <div class="card full"><h3>Highlights</h3><div class="facts">
       ${busiest?`<div class="fact"><span>Busiest slot</span><b>${esc(slotLbl(busiest.s))}, ${Math.round(busiest.r)} per hour</b></div>`:''}
       ${quiet&&perSlot.length>1?`<div class="fact"><span>Quietest slot</span><b>${esc(slotLbl(quiet.s))}, ${Math.round(quiet.r)} per hour</b></div>`:''}
       <div class="fact"><span>Walking past</span><b>${pct(a.past,a.sum)} of everyone observed</b></div>
