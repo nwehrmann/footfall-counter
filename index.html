@@ -324,7 +324,8 @@ let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetch
 const status=(t,live)=>{const el=$('#status');el.textContent=t;el.classList.toggle('live',!!live)};
 const pad=n=>String(n).padStart(2,'0');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
-const nowTime=(plus=0)=>{const d=new Date(Date.now()+plus*60000);d.setMinutes(Math.floor(d.getMinutes()/15)*15);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const nowTime=(plus=0)=>{const d=new Date(Date.now()+plus*60000);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const addMin=(t,m)=>{const [h,mi]=t.split(':').map(Number),x=((h*60+mi+m)%1440+1440)%1440;return pad(Math.floor(x/60))+':'+pad(x%60)};
 const dateObj=s=>{const [y,m,d]=(s||'').split('-').map(Number);return new Date(y,m-1,d)};
 const dayOf=s=>s?DAYS[dateObj(s).getDay()]||'':'';
 const fmtDate=s=>s?dateObj(s).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'';
@@ -391,7 +392,7 @@ $('#sched').addEventListener('click',e=>{
   if(b.dataset.a==='open'){const id=b.dataset.s;location.hash='#count';requestAnimationFrame(()=>{const el=document.getElementById('slot-'+id);if(el){el.scrollIntoView({block:'start'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}});return}
   const x=SCHEDULE.find(y=>y.id===b.dataset.x);if(!x)return;
   location.hash='#count';
-  $('#nDate').value=weekDate(x.day);$('#nStart').value=x.start;$('#nEnd').value=x.end;$('#nWho').value=x.who;$('#nPlace').value='';pendingCode=x.id;
+  $('#nDate').value=weekDate(x.day);$('#nStart').value=x.start;$('#nEnd').value=x.end;$('#nWho').value=x.who;$('#nPlace').value='';pendingCode=x.id;timesTouched=true;endTouched=true;
   requestAnimationFrame(()=>{$('#newForm').scrollIntoView({block:'start'});status(`${x.id} filled in for ${x.who}. Check the details, then tap Add slot.`,true)});
 });
 
@@ -620,7 +621,7 @@ $('#newForm').addEventListener('submit',async e=>{
   if(lock)row.locked=true;
   const {data,error}=await sb.from('slots').insert(row).select().single();
   if(error){status(/observer|slot_code/.test(errMsg(error))?'Run the name update SQL in Supabase first, then try again.':'Could not add slot: '+errMsg(error));return}
-  pendingCode=null;replace(data);
+  pendingCode=null;timesTouched=false;endTouched=false;setNowTimes(true);replace(data);
   if(has)logExtra(data.id,{in:row.in_count,out:row.out_count,past:row.past_count},'paper');
   $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('#paper').open=false;
   status(lock?'Slot added with your counts and locked':has?'Slot added with your counts':'Slot added, start tapping',true);
@@ -671,7 +672,18 @@ for(const b of $$('.csvCopy'))b.addEventListener('click',async()=>{
 });
 
 try{const w=localStorage.getItem('ffc-who');if(w)$('#nWho').value=w}catch(e){}
-$('#nDate').value=today();$('#nStart').value=nowTime();$('#nEnd').value=nowTime(30);
+/* default times: the current minute and 30 minutes later, kept live until someone edits them */
+let timesTouched=false,endTouched=false;
+function setNowTimes(force){
+  if(timesTouched&&!force)return;
+  $('#nDate').value=today();$('#nStart').value=nowTime();$('#nEnd').value=nowTime(30);
+}
+$('#nStart').addEventListener('input',()=>{timesTouched=true;const v=$('#nStart').value;if(v&&!endTouched)$('#nEnd').value=addMin(v,30)});
+$('#nEnd').addEventListener('input',()=>{timesTouched=true;endTouched=true});
+$('#nDate').addEventListener('input',()=>{timesTouched=true});
+setInterval(()=>setNowTimes(false),15000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setNowTimes(false)});
+setNowTimes(true);
 setView(location.hash.slice(1));
 
 if(!window.supabase){status('Could not load the database library. Check your connection and reload.')}
