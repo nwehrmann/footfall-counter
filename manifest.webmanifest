@@ -1,13 +1,17 @@
 {
+  "id": "./",
   "name": "ILC MVP",
   "short_name": "ILC MVP",
+  "description": "Footfall, competitor queues and café research for the ILC pop-up",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f5f5f7",
   "theme_color": "#f5f5f7",
   "icons": [
-    {"src": "icon-c-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-c-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    {"src": "icon-c-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-c-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-c-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }

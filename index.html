@@ -302,6 +302,17 @@ textarea{-webkit-appearance:none;appearance:none;display:block;width:100%;font:4
  body.sub .top{display:none}
  .backbar b{font-size:20px;font-weight:700;letter-spacing:-.02em}
 }
+
+.install{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:15;background:var(--card);border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.06);padding:14px 14px 14px 16px;display:none;align-items:center;gap:12px;max-width:520px;margin:0 auto}
+.install.on{display:flex}
+.install img{width:48px;height:48px;border-radius:12px;flex:none;box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
+.install .it{flex:1;min-width:0;font-size:14px;line-height:1.35;color:var(--mute)}
+.install .it b{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
+.install .sh{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--blue-t);color:var(--blue);vertical-align:-5px;margin:0 2px}
+.install .sh svg{width:14px;height:14px}
+.install .go{min-height:40px;padding:0 16px;border-radius:99px;flex:none}
+.install .close{flex:none;width:30px;height:30px;min-height:0;padding:0;border-radius:50%;background:var(--fill);color:var(--mute);font-size:18px;line-height:1;align-self:flex-start}
+body.has-install .wrap{padding-bottom:calc(env(safe-area-inset-bottom) + 120px)}
 #tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--card);font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;display:none;white-space:nowrap}
 
 /* modal */
@@ -453,6 +464,13 @@ textarea{-webkit-appearance:none;appearance:none;display:block;width:100%;font:4
 </div>
 
 <div id="tip" role="tooltip"></div>
+<div class="install" id="install" role="dialog" aria-label="Install ILC MVP">
+  <img src="icon-c-180.png" alt="">
+  <div class="it" id="installText"></div>
+  <button type="button" class="primary go" id="installGo" hidden>Install</button>
+  <button type="button" class="close" id="installX" aria-label="Not now">×</button>
+</div>
+
 <div class="modal cmodal" id="cModal" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
   <form class="card" id="cForm">
     <h2 id="cmTitle" style="margin:0 0 18px">Edit café</h2>
@@ -1175,6 +1193,29 @@ setInterval(()=>setQNow(false),15000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setQNow(false)});
 setQNow(true);
 
+
+/* ---------- install as an app ---------- */
+{
+  const SHARE='<span class="sh" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M7 1.5v7M4.5 4 7 1.5 9.5 4M3.5 6.5H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  const ua=navigator.userAgent,isIOS=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+  const snoozed=()=>{try{return Date.now()<Number(localStorage.getItem('ilc-install-snooze')||0)}catch(e){return false}};
+  const box=$('#install'),txt=$('#installText'),go=$('#installGo');
+  let deferred=null;
+  const show=html=>{if(standalone()||snoozed())return;txt.innerHTML=html;box.classList.add('on');document.body.classList.add('has-install')};
+  const hide=()=>{box.classList.remove('on');document.body.classList.remove('has-install')};
+  $('#installX').addEventListener('click',()=>{hide();try{localStorage.setItem('ilc-install-snooze',String(Date.now()+3*864e5))}catch(e){}});
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;go.hidden=false;show('<b>Install ILC MVP</b>Add it to your home screen and open it like an app.')});
+  go.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();const r=await deferred.userChoice.catch(()=>null);deferred=null;go.hidden=true;if(r&&r.outcome==='accepted')hide()});
+  window.addEventListener('appinstalled',()=>{hide();toast('ILC MVP is on your home screen')});
+  if(isIOS&&!standalone()){
+    const safari=!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
+    setTimeout(()=>show(safari
+      ?`<b>Install ILC MVP</b>Tap ${SHARE} Share (under <b style="display:inline;font-size:inherit">•••</b> on newer iPhones), then <b style="display:inline;font-size:inherit">Add to Home Screen</b>.`
+      :`<b>Install ILC MVP</b>Open this link in Safari, then tap ${SHARE} Share and <b style="display:inline;font-size:inherit">Add to Home Screen</b>.`),1200);
+  }
+}
 try{const w=localStorage.getItem('ffc-who');if(w)$('#nWho').value=w}catch(e){}
 /* default times: the current minute and 30 minutes later, kept live until someone edits them */
 let timesTouched=false,endTouched=false;
