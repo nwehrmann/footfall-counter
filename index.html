@@ -137,7 +137,7 @@ button:active{opacity:.7}
 .hero .v{font-size:clamp(44px,7vw,64px);line-height:1;font-weight:700;letter-spacing:-.04em}
 .meter{display:flex;gap:2px;height:8px;margin-top:16px}
 .meter i{border-radius:4px;background:var(--c)}
-.mlegend{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:8px}
+.mlegend{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:8px}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .kpi .k{font-size:14px;font-weight:500;color:var(--mute);display:flex;align-items:center;gap:7px}
 .kpi .v{font-size:clamp(30px,4.4vw,38px);line-height:1.1;font-weight:700;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:8px}
@@ -498,31 +498,31 @@ function renderDash(){
   const box=$('#dash'),c=chrono();
   if(!c.length){box.innerHTML='<div class="empty">The dashboard fills in as soon as you add slots.</div>';return}
   const a=agg(c),days=new Set(c.map(s=>s.slot_date)).size,untimed=c.filter(s=>!mins(s.start_time,s.end_time)).length;
-  const capture=a.in+a.past?a.in/(a.in+a.past):null;
   const timed=c.filter(s=>mins(s.start_time,s.end_time));
   const perSlot=timed.map(s=>({s,r:tot(s)/mins(s.start_time,s.end_time)*60}));
   const busiest=perSlot.slice().sort((x,y)=>y.r-x.r)[0],quiet=perSlot.slice().sort((x,y)=>x.r-y.r)[0];
-  const capSlots=c.filter(s=>cnt(s,'in')+cnt(s,'past')>=10).map(s=>({s,c:cnt(s,'in')/(cnt(s,'in')+cnt(s,'past'))})).sort((x,y)=>y.c-x.c);
+  const libSlots=c.filter(s=>tot(s)>=20).map(s=>({s,l:(cnt(s,'in')+cnt(s,'out'))/tot(s)})).sort((x,y)=>y.l-x.l);
   const slotLbl=s=>`${shortDate(s.slot_date)}, ${hm(s.start_time)}`;
   const kpi=(label,val,sub,sw)=>`<div class="kpi card"><div class="k">${sw?`<i class="dot" style="--c:var(${sw})"></i>`:''}${label}</div><div class="v">${val}</div><div class="d">${sub}</div></div>`;
   const slotRows=timed.map(s=>{const m=mins(s.start_time,s.end_time),v={};for(const [kk] of CATS)v[kk]=cnt(s,kk)/m*60;return{label:`${esc(dateObj(s.slot_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}))} <small>${esc(hm(s.start_time))}</small>`,tip:slotLbl(s),v,total:v.in+v.out+v.past}});
   const byDay=[1,2,3,4,5,6,0].map(d=>{const l=c.filter(s=>dateObj(s.slot_date).getDay()===d),g=agg(l);return{label:DAYS[d].slice(0,3)+(l.length?` <small>${l.length} slot${l.length>1?'s':''}</small>`:''),tip:DAYS[d],v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll,n:g.min}}).filter(r=>r.n);
   const hours=[...new Set(timed.map(s=>+hm(s.start_time).slice(0,2)))].sort((x,y)=>x-y);
   const byHour=hours.map(h=>{const l=timed.filter(s=>+hm(s.start_time).slice(0,2)===h),g=agg(l);return{label:`${pad(h)}:00 <small>${l.length} slot${l.length>1?'s':''}</small>`,tip:`Slots starting ${pad(h)}:00–${pad(h)}:59`,v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll}});
-  const capW=capture==null?0:capture*100;
+  const sh=k=>a.sum?a[k]/a.sum*100:0,lib=a.in+a.out;
   box.innerHTML=`
   <div class="hero">
-    <div class="card"><div class="k">People observed</div><div class="big">${fmt(a.sum)}</div><p>Across ${c.length} slot${c.length>1?'s':''} on ${days} day${days>1?'s':''}${a.min?`, ${r1(a.min/60)} hours of counting in total`:''}.</p></div>
-    <div class="card"><div class="k">Capture rate</div><div class="v">${capture==null?'—':Math.round(capture*100)+'%'}</div>
-      <div class="meter" aria-hidden="true"><i style="--c:var(--in);flex:${capW||0.001}"></i><i style="--c:var(--past);flex:${100-capW||0.001}"></i></div>
-      <div class="mlegend"><span>Went in</span><span>Walked past</span></div>
-      <p>Share of people approaching the library who went in.</p></div>
+    <div class="card"><div class="k">Foot traffic</div><div class="big">${fmt(a.sum)}</div><p>People passing the spot across ${c.length} slot${c.length>1?'s':''} on ${days} day${days>1?'s':''}${a.min?`, ${r1(a.min/60)} hours counted. That's about ${Math.round(a.rateAll)} people an hour, or ${r1(a.rateAll/60)} a minute`:''}.</p></div>
+    <div class="card"><div class="k">Where the traffic comes from</div><div class="v">${pct(a.past,a.sum)}</div>
+      <p style="margin-top:6px">of people were walking along the street, not using the library.</p>
+      <div class="meter" aria-hidden="true">${CATS.slice().reverse().map(([k,,c])=>`<i style="--c:var(${c});flex:${sh(k)||0.001}"></i>`).join('')}</div>
+      <div class="mlegend"><span>Walked past ${pct(a.past,a.sum)}</span><span>In ${pct(a.in,a.sum)}</span><span>Out ${pct(a.out,a.sum)}</span></div>
+      <p>Library-linked traffic, going in or coming out: ${pct(lib,a.sum)}.</p></div>
   </div>
   <div class="kpis">
+    ${kpi('Walked past',fmt(a.past),a.min?`${Math.round(a.rate('past'))} per hour`:'&nbsp;','--past')}
     ${kpi('Went in',fmt(a.in),a.min?`${Math.round(a.rate('in'))} per hour`:'&nbsp;','--in')}
     ${kpi('Came out',fmt(a.out),a.min?`${Math.round(a.rate('out'))} per hour`:'&nbsp;','--out')}
-    ${kpi('Walked past',fmt(a.past),a.min?`${Math.round(a.rate('past'))} per hour`:'&nbsp;','--past')}
-    ${kpi('Net into library',(a.in-a.out>0?'+':'')+fmt(a.in-a.out),'went in minus came out')}
+    ${kpi('Per minute',a.min?r1(a.rateAll/60):'—','everyone, on average')}
   </div>
   <div class="legend"><span><i class="dot" style="--c:var(--in)"></i>Went in</span><span><i class="dot" style="--c:var(--out)"></i>Came out</span><span><i class="dot" style="--c:var(--past)"></i>Walked past</span></div>
   <div class="charts">
@@ -532,16 +532,15 @@ function renderDash(){
     <div class="card full"><h3>Highlights</h3><div class="facts">
       ${busiest?`<div class="fact"><span>Busiest slot</span><b>${esc(slotLbl(busiest.s))}, ${Math.round(busiest.r)} per hour</b></div>`:''}
       ${quiet&&perSlot.length>1?`<div class="fact"><span>Quietest slot</span><b>${esc(slotLbl(quiet.s))}, ${Math.round(quiet.r)} per hour</b></div>`:''}
-      <div class="fact"><span>Walking past</span><b>${pct(a.past,a.sum)} of everyone observed</b></div>
-      ${capSlots.length?`<div class="fact"><span>Highest capture rate</span><b>${esc(slotLbl(capSlots[0].s))}, ${Math.round(capSlots[0].c*100)}%</b></div>`:''}
-      ${capSlots.length>1?`<div class="fact"><span>Lowest capture rate</span><b>${esc(slotLbl(capSlots[capSlots.length-1].s))}, ${Math.round(capSlots[capSlots.length-1].c*100)}%</b></div>`:''}
+      ${libSlots.length?`<div class="fact"><span>Most library-driven slot</span><b>${esc(slotLbl(libSlots[0].s))}, ${Math.round(libSlots[0].l*100)}% in or out</b></div>`:''}
+      ${libSlots.length>1?`<div class="fact"><span>Most street-driven slot</span><b>${esc(slotLbl(libSlots[libSlots.length-1].s))}, ${Math.round((1-libSlots[libSlots.length-1].l)*100)}% walking past</b></div>`:''}
       ${(()=>{const live=effectiveTaps(taps);if(!live.length)return '';const m=new Map();
         for(const t of live){const k=t.slot_id+'|'+Math.floor(Date.parse(t.at)/300000);m.set(k,(m.get(k)||0)+1)}
         let best=null;for(const [k,v] of m)if(!best||v>best[1])best=[k,v];
         const [sid,bk]=best[0].split('|'),st=+bk*300000,sl=slots.find(x=>x.id===sid);
         return `<div class="fact"><span>Busiest 5 minutes</span><b>${esc(sl?shortDate(sl.slot_date)+', ':'')}${clock(st)}–${clock(st+300000)}, ${best[1]} people</b></div>`})()}
       <div class="fact"><span>Locked slots</span><b>${c.filter(s=>s.locked).length} of ${c.length}</b></div>
-    </div><p class="cnote">Capture rate is went in ÷ (went in + walked past). Slot capture rates only include slots with at least 10 people approaching.</p></div>
+    </div><p class="cnote">Library-linked traffic is people going in or coming out; street traffic is people walking past. Slot comparisons only include slots with at least 20 people.</p></div>
   </div>`;
 }
 
@@ -644,10 +643,10 @@ $('#editForm').addEventListener('submit',async e=>{
 
 function csv(){
   const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const rows=[['Date','Day','Start','End','Minutes','Slot ID','Observer','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour','Capture rate %','Locked']];
+  const rows=[['Date','Day','Start','End','Minutes','Slot ID','Observer','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour','Walked past %','Library-linked %','Locked']];
   for(const s of chrono()){
     const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?r1(n/d*60):'';
-    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',s.slot_code||'',s.observer||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past),t.in+t.past?Math.round(t.in/(t.in+t.past)*100):'',s.locked?'yes':'no']);
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',s.slot_code||'',s.observer||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past),(t.in+t.out+t.past)?Math.round(t.past/(t.in+t.out+t.past)*100):'',(t.in+t.out+t.past)?Math.round((t.in+t.out)/(t.in+t.out+t.past)*100):'',s.locked?'yes':'no']);
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
