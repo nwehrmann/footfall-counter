@@ -1,6 +1,6 @@
 {
-  "name": "Library Footfall Counter",
-  "short_name": "Footfall",
+  "name": "ILC MVP",
+  "short_name": "ILC MVP",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
