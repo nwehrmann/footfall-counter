@@ -154,6 +154,23 @@ button:active{opacity:.7}
 .fact{padding:12px 0;border-top:1px solid var(--line)}
 .fact span{display:block;font-size:13px;color:var(--mute)}
 .fact b{display:block;font-size:15px;font-weight:600;margin-top:2px}
+.tltog{margin-top:14px;background:transparent;color:var(--link);padding:0;min-height:36px;font-weight:500;font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.tltog svg{width:12px;height:12px;transition:transform .2s}
+.tltog[aria-expanded=true] svg{transform:rotate(180deg)}
+.tl{margin-top:6px;border-top:1px solid var(--line);padding-top:16px}
+.tlsum{font-size:13px;color:var(--mute);margin:0 0 12px}
+.tlchart{display:flex;align-items:flex-end;gap:2px;height:110px;padding:0 1px}
+.tlc{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;cursor:default}
+.tlc>div{display:flex;flex-direction:column-reverse;gap:1px}
+.tlc i{display:block;background:var(--c);border-radius:2px;min-height:2px}
+.tlc.nil>div{height:2px;background:var(--line);border-radius:2px}
+.tlaxis{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:6px;font-variant-numeric:tabular-nums}
+.tllist{list-style:none;margin:16px 0 0;padding:0;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:14px}
+.tllist li{display:grid;grid-template-columns:6.2em minmax(0,1fr) auto;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:center}
+.tllist time{font-variant-numeric:tabular-nums;color:var(--mute)}
+.tllist span{display:flex;align-items:center;gap:7px}
+.tllist small{color:var(--mute)}
+.tllist b{font-weight:600;font-variant-numeric:tabular-nums}
 #tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--card);font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;display:none;white-space:nowrap}
 
 /* modal */
@@ -225,7 +242,7 @@ button:active{opacity:.7}
     <div class="status" id="status" role="status">Connecting</div>
     <div class="bar">
       <h2 id="countLabel">Slots</h2>
-      <div class="btns"><button type="button" class="csvDl">Download CSV</button><button type="button" class="csvCopy">Copy CSV</button></div>
+      <div class="btns"><button type="button" class="csvDl">Download CSV</button><button type="button" class="tapDl">Tap log CSV</button></div>
     </div>
     <div id="list"></div>
   </section>
@@ -233,7 +250,7 @@ button:active{opacity:.7}
   <section class="view" id="v-overview">
     <div class="bar" style="margin-top:0">
       <h2>All slots</h2>
-      <div class="btns"><button type="button" class="csvDl">Download CSV</button></div>
+      <div class="btns"><button type="button" class="csvDl">Download CSV</button><button type="button" class="tapDl">Tap log CSV</button></div>
     </div>
     <div class="legend"><span><i class="dot" style="--c:var(--in)"></i>Went in</span><span><i class="dot" style="--c:var(--out)"></i>Came out</span><span><i class="dot" style="--c:var(--past)"></i>Walked past</span></div>
     <div id="overview"></div>
@@ -279,6 +296,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CATS=[['in','Went in','--in'],['out','Came out','--out'],['past','Walked past','--past']];
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const LOCK_ICON='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.2" fill="currentColor"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+let taps=[],tapsOk=null;const openTl=new Set();
 let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null,view='count',lastTap=null;
 
 const status=(t,live)=>{const el=$('#status');el.textContent=t;el.classList.toggle('live',!!live)};
@@ -313,6 +331,34 @@ function setView(v){
 window.addEventListener('hashchange',()=>setView(location.hash.slice(1)));
 function render(){if(view==='count')renderCount();else if(view==='overview')renderOverview();else renderDash()}
 
+const CHEV='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const catName=k=>(CATS.find(c=>c[0]===k)||[,k])[1];
+const catVar=k=>(CATS.find(c=>c[0]===k)||[,,'--mute'])[2];
+const clock=(ms,sec)=>new Date(ms).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:sec?'2-digit':undefined});
+function timeline(s){
+  if(tapsOk===false)return '<div class="tl"><p class="tlsum">Tap times are not being recorded yet. Run the tap-log update in Supabase first.</p></div>';
+  const all=taps.filter(t=>t.slot_id===s.id),live=all.filter(t=>t.source==='tap');
+  if(!all.length)return '<div class="tl"><p class="tlsum">No tap times recorded for this slot yet. Every tap from now on is saved with its exact time.</p></div>';
+  let chart='';
+  if(live.length){
+    const times=live.map(t=>Date.parse(t.at)),t0=new Date(s.slot_date+'T'+hm(s.start_time)).getTime();
+    let start=Math.min(t0,...times),end=Math.max(s.end_time?t0+mins(s.start_time,s.end_time)*60000:0,...times);
+    start=Math.floor(start/60000)*60000;
+    const span=(end-start)/60000,step=span<=40?1:span<=150?5:15,ms=step*60000,n=Math.max(1,Math.ceil((end-start+1)/ms));
+    const b=Array.from({length:n},()=>({in:0,out:0,past:0}));
+    for(const t of live){const i=Math.min(n-1,Math.max(0,Math.floor((Date.parse(t.at)-start)/ms)));b[i][t.field]+=t.delta}
+    const sums=b.map(x=>Math.max(0,x.in)+Math.max(0,x.out)+Math.max(0,x.past)),max=Math.max(1,...sums);
+    chart=`<div class="tlchart" role="img" aria-label="Taps per ${step} minute${step>1?'s':''} over the slot">${b.map((x,i)=>{const from=start+i*ms;
+      const tipTxt=`${clock(from)}–${clock(from+ms)}: in ${x.in}, out ${x.out}, past ${x.past}`;
+      return sums[i]?`<div class="tlc" data-tip="${esc(tipTxt)}"><div style="height:${(sums[i]/max*100).toFixed(1)}%">${CATS.map(([k,,c])=>x[k]>0?`<i style="--c:var(${c});flex:${x[k]}"></i>`:'').join('')}</div></div>`:`<div class="tlc nil" data-tip="${esc(tipTxt)}"><div></div></div>`}).join('')}</div>
+      <div class="tlaxis"><span>${clock(start)}</span>${n>4?`<span>${clock(start+Math.floor(n/2)*ms)}</span>`:''}<span>${clock(start+n*ms)}</span></div>`;
+    chart=`<p class="tlsum">Taps per ${step===1?'minute':step+' minutes'}, ${live.length} tap${live.length>1?'s':''} recorded. Tap a bar for details.</p>`+chart;
+  }
+  const list=all.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).map(t=>{const src=t.source==='paper'?' <small>from paper</small>':t.source==='edit'?' <small>manual edit</small>':'';
+    const when=t.source==='tap'?clock(Date.parse(t.at),true):new Date(t.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<li><time>${esc(when)}</time><span><i class="dot" style="--c:var(${catVar(t.field)})"></i>${esc(catName(t.field))}${src}</span><b>${t.delta>0?'+':''}${t.delta}</b></li>`}).join('');
+  return `<div class="tl">${chart}<ul class="tllist">${list}</ul></div>`;
+}
 function renderCount(){
   const list=$('#list'),sorted=chrono().reverse();
   $('#countLabel').innerHTML=sorted.length?`Slots <small>${sorted.length}</small>`:'Slots';
@@ -331,7 +377,8 @@ function renderCount(){
       <div class="head"><div><div class="hdate">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))}</div><div class="htime">${range(s)}</div>
         <div class="hmeta">${L?`<span class="lock">${LOCK_ICON}Locked</span>`:'<span class="live">Counting</span>'}<span>${fmt(sum)} people</span>${dur?`<span>${dur} min</span>`:''}${s.place?`<span>${esc(s.place)}</span>`:''}</div></div>
         <div class="acts">${acts}</div></div>
-      <div class="counters">${ctrs}</div>${conf}</article>`}).join('');
+      <div class="counters">${ctrs}</div>${conf}
+      <button type="button" class="tltog" data-a="tl" data-s="${id}" aria-expanded="${openTl.has(s.id)}">${openTl.has(s.id)?'Hide tap times':'Show tap times'}${CHEV}</button>${openTl.has(s.id)?timeline(s):''}</article>`}).join('');
 }
 
 function stack(t,sum,title){
@@ -413,6 +460,11 @@ function renderDash(){
       <div class="fact"><span>Walking past</span><b>${pct(a.past,a.sum)} of everyone observed</b></div>
       ${capSlots.length?`<div class="fact"><span>Highest capture rate</span><b>${esc(slotLbl(capSlots[0].s))}, ${Math.round(capSlots[0].c*100)}%</b></div>`:''}
       ${capSlots.length>1?`<div class="fact"><span>Lowest capture rate</span><b>${esc(slotLbl(capSlots[capSlots.length-1].s))}, ${Math.round(capSlots[capSlots.length-1].c*100)}%</b></div>`:''}
+      ${(()=>{const live=taps.filter(t=>t.source==='tap'&&t.delta>0);if(!live.length)return '';const m=new Map();
+        for(const t of live){const k=t.slot_id+'|'+Math.floor(Date.parse(t.at)/300000);m.set(k,(m.get(k)||0)+1)}
+        let best=null;for(const [k,v] of m)if(!best||v>best[1])best=[k,v];
+        const [sid,bk]=best[0].split('|'),st=+bk*300000,sl=slots.find(x=>x.id===sid);
+        return `<div class="fact"><span>Busiest 5 minutes</span><b>${esc(sl?shortDate(sl.slot_date)+', ':'')}${clock(st)}–${clock(st+300000)}, ${best[1]} people</b></div>`})()}
       <div class="fact"><span>Locked slots</span><b>${c.filter(s=>s.locked).length} of ${c.length}</b></div>
     </div><p class="cnote">Capture rate is went in ÷ (went in + walked past). Slot capture rates only include slots with at least 10 people approaching.</p></div>
   </div>`;
@@ -427,8 +479,21 @@ document.addEventListener('pointermove',showTip);
 document.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')showTip(e)});
 document.addEventListener('scroll',()=>{tip.style.display='none'},{passive:true});
 
+async function loadTaps(){
+  let all=[];
+  for(let from=0;;from+=1000){const {data,error}=await sb.from('taps').select('*').order('at').range(from,from+999);
+    if(error){tapsOk=false;return}all=all.concat(data||[]);if(!data||data.length<1000)break}
+  taps=all;tapsOk=true;
+}
+async function logExtra(id,d,source){
+  if(!tapsOk)return;
+  const rows=CATS.map(([k])=>({slot_id:id,field:k,delta:d[k]||0,source})).filter(r=>r.delta);
+  if(!rows.length)return;
+  const {data,error}=await sb.from('taps').insert(rows).select();
+  if(!error&&data){taps.push(...data);render()}
+}
 async function load(){
-  const {data,error}=await sb.from('slots').select('*');
+  const [{data,error}]=await Promise.all([sb.from('slots').select('*'),loadTaps()]);
   if(error){status('Could not load: '+errMsg(error));return}
   slots=data||[];loaded=true;render();status('Live, synced with everyone',true);
 }
@@ -444,7 +509,8 @@ async function bump(id,k,d){
   const {data,error}=await sb.rpc('bump',{p_id:id,p_field:k,p_delta:d});
   inflight--;
   if(error){s[k+'_count']=cnt(s,k)-d;render();status('Tap not saved: '+errMsg(error));scheduleRefetch();return}
-  if(!inflight&&data&&data.id){lastTap=null;replace(data)}
+  if(tapsOk)taps.push({slot_id:id,field:k,delta:d,source:'tap',at:new Date().toISOString()});
+  if(!inflight&&data&&data.id){lastTap=null;replace(data)}else if(openTl.has(id))render();
 }
 async function setLock(id,v){
   const {data,error}=await sb.from('slots').update({locked:v}).eq('id',id).select().single();
@@ -455,6 +521,7 @@ async function setLock(id,v){
 $('#list').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-a]');if(!b||!sb)return;
   const a=b.dataset.a,id=b.dataset.s;
+  if(a==='tl'){openTl.has(id)?openTl.delete(id):openTl.add(id);render();return}
   if(a==='plus')bump(id,b.dataset.k,1);
   else if(a==='minus')bump(id,b.dataset.k,-1);
   else if(a==='lock'){confirmDel=null;setLock(id,true)}
@@ -478,6 +545,7 @@ $('#newForm').addEventListener('submit',async e=>{
   const {data,error}=await sb.from('slots').insert(row).select().single();
   if(error){status('Could not add slot: '+errMsg(error));return}
   replace(data);
+  if(has)logExtra(data.id,{in:row.in_count,out:row.out_count,past:row.past_count},'paper');
   $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('#paper').open=false;
   status(lock?'Slot added with your counts and locked':has?'Slot added with your counts':'Slot added, start tapping',true);
 });
@@ -489,10 +557,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#editForm').addEventListener('submit',async e=>{
   e.preventDefault();const id=editId;if(!id)return;
   const upd={slot_date:$('#eDate').value,start_time:$('#eStart').value,end_time:$('#eEnd').value||null,place:$('#ePlace').value.trim()||null,in_count:num('#eIn'),out_count:num('#eOut'),past_count:num('#ePast')};
+  const old=slots.find(x=>x.id===id),before={in:old?cnt(old,'in'):0,out:old?cnt(old,'out'):0,past:old?cnt(old,'past'):0};
   closeModal();
   const {data,error}=await sb.from('slots').update(upd).eq('id',id).select().single();
   if(error){status('Could not save changes: '+errMsg(error));return}
   replace(data);status('Changes saved',true);
+  logExtra(id,{in:upd.in_count-before.in,out:upd.out_count-before.out,past:upd.past_count-before.past},'edit');
 });
 
 function csv(){
@@ -504,10 +574,22 @@ function csv(){
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
-for(const b of $$('.csvDl'))b.addEventListener('click',()=>{
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv()],{type:'text/csv'}));a.download='footfall-'+today()+'.csv';
+function download(text,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+text],{type:'text/csv'}));a.download=name;
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
-});
+}
+function tapCsv(){
+  const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const rows=[['Slot date','Slot day','Slot start','Slot end','Tap date','Tap time','Category','Change','Source']];
+  const by=new Map(slots.map(s=>[s.id,s]));
+  for(const t of taps.slice().sort((a,b)=>Date.parse(a.at)-Date.parse(b.at))){
+    const s=by.get(t.slot_id);if(!s)continue;const d=new Date(t.at);
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d.toLocaleDateString('en-CA'),d.toLocaleTimeString('en-GB'),catName(t.field),t.delta,t.source==='tap'?'tap':t.source==='paper'?'from paper':'manual edit']);
+  }
+  return rows.map(r=>r.map(q).join(',')).join('\n');
+}
+for(const b of $$('.csvDl'))b.addEventListener('click',()=>download(csv(),'footfall-'+today()+'.csv'));
+for(const b of $$('.tapDl'))b.addEventListener('click',()=>{if(!tapsOk||!taps.length){status(tapsOk===false?'Run the tap-log update in Supabase first.':'No taps recorded yet.');return}download(tapCsv(),'footfall-taps-'+today()+'.csv')});
 for(const b of $$('.csvCopy'))b.addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(csv());status('CSV copied, paste it into Excel or Google Sheets',true)}catch(e){status('Copy did not work here. Use Download CSV instead.')}
 });
@@ -519,7 +601,7 @@ if(!window.supabase){status('Could not load the database library. Check your con
 else{
   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
   load();
-  sb.channel('slots-live').on('postgres_changes',{event:'*',schema:'public',table:'slots'},scheduleRefetch).subscribe();
+  sb.channel('slots-live').on('postgres_changes',{event:'*',schema:'public',table:'slots'},scheduleRefetch).on('postgres_changes',{event:'INSERT',schema:'public',table:'taps'},scheduleRefetch).subscribe();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
 }
 }
