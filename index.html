@@ -16,58 +16,114 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:light dark;--bg:#f4f3ef;--card:#fff;--ink:#141414;--mute:#5f5f5a;--line:#dcdad3;--in:#0a7a5c;--out:#c2410c;--past:#4b5bd6;--danger:#b91c1c;--field:#f7f6f2}
-@media(prefers-color-scheme:dark){:root{--bg:#121314;--card:#1c1d1f;--ink:#f1f0ec;--mute:#a3a29c;--line:#33343a;--in:#3fcf9f;--out:#ff8a4c;--past:#8c99ff;--danger:#ff6b6b;--field:#141517}}
+:root{color-scheme:light dark;--bg:#f4f3ef;--card:#fff;--ink:#141414;--mute:#5f5f5a;--line:#dcdad3;--in:#0a7a5c;--out:#c2410c;--past:#4b5bd6;--danger:#b91c1c;--field:#f7f6f2;--track:#ecebe6}
+@media(prefers-color-scheme:dark){:root{--bg:#121314;--card:#1c1d1f;--ink:#f1f0ec;--mute:#a3a29c;--line:#33343a;--in:#2fb889;--out:#e8702f;--past:#7d8bf5;--danger:#ff6b6b;--field:#141517;--track:#2a2b30}}
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,system-ui,sans-serif;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:1100px;margin:0 auto;padding:calc(env(safe-area-inset-top) + clamp(18px,4vw,48px)) calc(env(safe-area-inset-right) + max(4vw,14px)) calc(env(safe-area-inset-bottom) + 40px) calc(env(safe-area-inset-left) + max(4vw,14px))}
-h1{font:800 clamp(28px,5vw,46px)/1.05 Archivo,-apple-system,sans-serif;margin:0 0 6px;text-wrap:balance}
-.sub{color:var(--mute);margin:0 0 20px;max-width:62ch}
+.wrap{max-width:1100px;margin:0 auto;padding:calc(env(safe-area-inset-top) + clamp(18px,4vw,40px)) calc(env(safe-area-inset-right) + max(4vw,14px)) calc(env(safe-area-inset-bottom) + 40px) calc(env(safe-area-inset-left) + max(4vw,14px))}
+h1{font:800 clamp(28px,5vw,44px)/1.05 Archivo,-apple-system,sans-serif;margin:0 0 4px;text-wrap:balance}
+.loc{color:var(--mute);margin:0 0 16px;font-weight:500}
+h2{font:700 22px/1.2 Archivo,-apple-system,sans-serif;margin:0}
+h3{font:700 17px/1.3 Archivo,-apple-system,sans-serif;margin:0 0 10px}
+.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 6px);box-shadow:0 0 0 6px var(--bg);z-index:4;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;margin:0 0 18px;background:var(--track);border-radius:12px}
+.tabs a{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:9px;color:var(--mute);font-weight:600;text-decoration:none;font-size:15px}
+.tabs a[aria-current=page]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.view{display:none}.view.on{display:block}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
 .form .wide,.form .go,.paper{grid-column:1/-1}
 .paper{border-top:1px solid var(--line);padding-top:10px}
-.paper summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center;gap:8px;list-style:none}.paper summary::-webkit-details-marker{display:none}.paper summary::before{content:'+';font:800 20px/1 Archivo,sans-serif;color:var(--past);width:16px;flex:none}.paper[open] summary::before{content:'−'}
+.paper summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center;gap:8px;list-style:none}
+.paper summary::-webkit-details-marker{display:none}
+.paper summary::before{content:'+';font:800 20px/1 Archivo,sans-serif;color:var(--past);width:16px;flex:none}
+.paper[open] summary::before{content:'−'}
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.lockopt{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:15px;color:var(--ink);font-weight:500}
+.lockopt input{width:22px;height:22px;min-height:0;padding:0;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--ink)}
 label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:4px}
 input,select,textarea{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;font:16px/1.3 Inter,-apple-system,sans-serif;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background-color:var(--field);color:var(--ink);min-height:46px;margin:0}
 input[type=date],input[type=time]{text-align:left}
 input::-webkit-date-and-time-value{text-align:left;margin:0}
 input::-webkit-datetime-edit{padding:0}
 select{padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--past);outline-offset:2px}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible,.orow:focus-visible{outline:3px solid var(--past);outline-offset:2px}
 button{-webkit-appearance:none;appearance:none;font:600 15px Inter,-apple-system,sans-serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:28px 0 12px}
-.bar h2{font:700 22px Archivo,-apple-system,sans-serif;margin:0}
 .bar .btns{display:flex;gap:8px;flex-wrap:wrap}
 .status{font-size:14px;color:var(--mute);min-height:20px;margin-top:8px}
-.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px;scroll-margin-top:70px}
+.slot.locked{background:var(--field)}
+.slot.flash{animation:flash 1.4s ease}
+@keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--past)}100%{box-shadow:0 0 0 0 transparent}}
 .head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
 .when{font:700 20px/1.25 Archivo,-apple-system,sans-serif}
 .when span{white-space:nowrap}
 .meta{color:var(--mute);font-size:14px;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-top:6px;white-space:nowrap}
+.badge svg{width:12px;height:12px}
+.badge.open{color:var(--ink)}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .acts button{min-height:40px;font-size:14px}
 .counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .ctr{border-radius:12px;padding:12px;border:2px solid var(--c);display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
-.ctr .nm{font-weight:600;color:var(--c);font-size:15px}
+.locked .ctr{border-width:1px;border-left:5px solid var(--c)}
+.ctr .nm{font-weight:600;font-size:15px;display:flex;align-items:center;gap:7px}
+.ctr .nm::before,.sw{content:'';width:10px;height:10px;border-radius:3px;background:var(--c);flex:none;display:inline-block}
 .ctr .n{font:800 clamp(34px,6vw,48px)/1 Archivo,-apple-system,sans-serif;font-variant-numeric:tabular-nums;text-align:right}
 .ctr .plus{grid-column:1/-1;display:grid;grid-template-columns:56px 1fr;gap:8px}
 .ctr .plus button{min-height:64px;padding:0;font:800 28px/1 Archivo,-apple-system,sans-serif}
-.ctr .add{background:var(--c);color:var(--card);border-color:var(--c)}
+.ctr .add{background:var(--c);color:#fff;border-color:var(--c)}
 .ctr .add:active{transform:scale(.97)}
 .ctr .rate{grid-column:1/-1;font-size:13px;color:var(--mute)}
 .confirm{margin-top:12px;padding:12px;border-radius:10px;border:1px solid var(--danger);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .confirm b{flex:1 1 220px;color:var(--danger)}
 .del{background:var(--danger);color:#fff;border-color:var(--danger)}
 .empty{color:var(--mute);padding:28px;text-align:center;border:2px dashed var(--line);border-radius:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;margin:0 0 14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.day{margin-bottom:22px}
+.dayhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;padding:0 2px 8px;border-bottom:2px solid var(--ink);margin-bottom:4px}
+.dayhead b{font:700 18px Archivo,-apple-system,sans-serif}
+.dayhead small{color:var(--mute);font-size:14px}
+.orow{display:grid;grid-template-columns:7.5em minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line);cursor:pointer;color:inherit;text-decoration:none}
+.orow .t{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.orow .t small{display:block;font-weight:500;color:var(--mute);font-size:13px}
+.orow .nums{display:flex;gap:12px;font-variant-numeric:tabular-nums;font-size:14px;white-space:nowrap}
+.orow .nums b{font-size:16px}
+.orow .note{color:var(--mute);font-size:13px;margin-top:4px}
+.orow .tot{font:700 20px Archivo,-apple-system,sans-serif;text-align:right;font-variant-numeric:tabular-nums}
+.orow .tot small{display:block;font:500 12px Inter,sans-serif;color:var(--mute)}
+.stackbar{display:flex;gap:2px;height:10px;margin-top:8px}
+.stackbar i{display:block;height:100%;border-radius:3px;background:var(--c)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi .k{font-size:13px;font-weight:600;color:var(--mute);display:flex;align-items:center;gap:6px}
+.kpi .v{font:800 clamp(28px,4.5vw,40px)/1.1 Archivo,-apple-system,sans-serif;font-variant-numeric:tabular-nums;margin-top:4px}
+.kpi .d{font-size:13px;color:var(--mute)}
+.kpi.hero{grid-column:span 2;background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.kpi.hero .k,.kpi.hero .d{color:inherit;opacity:.75}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.charts .full{grid-column:1/-1}
+.crow{display:grid;grid-template-columns:8.5em minmax(0,1fr) 4em;gap:10px;align-items:center;padding:7px 0;font-size:14px}
+.crow .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .lb small{color:var(--mute)}
+.crow .val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.crow .stackbar{margin:0;height:16px}
+.crow .stackbar i{position:relative}
+.cnote{font-size:13px;color:var(--mute);margin:8px 0 0}
+.facts{display:grid;gap:10px}
+.fact{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.fact:last-child{border-bottom:0}
+.fact b{text-align:right}
+#tip{position:fixed;z-index:9;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:6px 9px;border-radius:8px;display:none;white-space:nowrap}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);z-index:5}
 .modal.on{display:flex}
 .modal .panel{width:min(520px,100%);max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
 .row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}}
 @media(max-width:600px){
  .form,.modal .dt{grid-template-columns:1fr 1fr}
  .form>div:first-child,.modal .dt>div:first-child{grid-column:1/-1}
@@ -79,44 +135,74 @@ button{-webkit-appearance:none;appearance:none;font:600 15px Inter,-apple-system
  .ctr .nm{grid-area:nm}.ctr .n{grid-area:n;text-align:left;font-size:40px}.ctr .rate{grid-area:rate}
  .ctr .plus{grid-area:plus;grid-template-columns:54px 84px;align-self:stretch}
  .ctr .plus button{min-height:72px;height:100%}
+ .locked .ctr{grid-template-areas:"nm n" "rate n"}
+ .locked .ctr .n{text-align:right;font-size:34px}
  .row button{flex:1}
+ .orow{grid-template-columns:minmax(0,1fr) auto}
+ .orow .t{grid-column:1/-1;display:flex;gap:8px;align-items:baseline}
+ .orow .t small{display:inline}
+ .kpi.hero{grid-column:1/-1}
+ .crow{grid-template-columns:7.6em minmax(0,1fr) 3em;gap:8px}
 }
-@media(prefers-reduced-motion:reduce){.ctr .add:active{transform:none}}
+@media(prefers-reduced-motion:reduce){.ctr .add:active{transform:none}.slot.flash{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Library footfall counter</h1>
-  <p class="sub">Make a slot for each counting session, then tap to count people who go in, come out or walk past. Every slot keeps its own separate count, and everyone with this link sees the same slots live.</p>
+  <p class="loc">LSE Library — John Watkins Plaza</p>
 
-  <form class="panel form" id="newForm">
-    <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
-    <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
-    <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
-    <div class="wide"><label for="nLoc">Location</label><select id="nLoc"><option>LSE Library — John Watkins Plaza</option></select></div>
-    <div class="wide"><label for="nPlace">Notes (optional)</label><input id="nPlace" maxlength="120" placeholder="e.g. raining, exam week, event on campus"></div>
-    <details class="paper">
-      <summary>Already counted on paper? Enter the totals (optional)</summary>
-      <div class="pgrid">
-        <div><label for="nIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="nIn" placeholder="0"></div>
-        <div><label for="nOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="nOut" placeholder="0"></div>
-        <div><label for="nPast">Walked past</label><input type="number" inputmode="numeric" min="0" step="1" id="nPast" placeholder="0"></div>
-      </div>
-    </details>
-    <div class="go"><button class="primary" type="submit" style="width:100%">Add slot</button></div>
-  </form>
-  <div class="status" id="status" role="status">Connecting…</div>
+  <nav class="tabs" aria-label="Views">
+    <a href="#count" data-v="count">Count</a>
+    <a href="#overview" data-v="overview">Overview</a>
+    <a href="#dashboard" data-v="dashboard">Dashboard</a>
+  </nav>
 
-  <div class="bar">
-    <h2 id="countLabel">Slots</h2>
-    <div class="btns"><button type="button" id="csvDl">Download CSV</button><button type="button" id="csvCopy">Copy CSV</button></div>
-  </div>
-  <div id="list"></div>
+  <section class="view" id="v-count">
+    <form class="panel form" id="newForm">
+      <div><label for="nDate">Date</label><input type="date" id="nDate" required></div>
+      <div><label for="nStart">Start</label><input type="time" id="nStart" required></div>
+      <div><label for="nEnd">End</label><input type="time" id="nEnd"></div>
+      <div class="wide"><label for="nLoc">Location</label><select id="nLoc"><option>LSE Library — John Watkins Plaza</option></select></div>
+      <div class="wide"><label for="nPlace">Notes (optional)</label><input id="nPlace" maxlength="120" placeholder="e.g. raining, exam week, event on campus"></div>
+      <details class="paper" id="paper">
+        <summary>Already counted on paper? Enter the totals</summary>
+        <div class="pgrid">
+          <div><label for="nIn">Went in</label><input type="number" inputmode="numeric" min="0" step="1" id="nIn" placeholder="0"></div>
+          <div><label for="nOut">Came out</label><input type="number" inputmode="numeric" min="0" step="1" id="nOut" placeholder="0"></div>
+          <div><label for="nPast">Walked past</label><input type="number" inputmode="numeric" min="0" step="1" id="nPast" placeholder="0"></div>
+        </div>
+        <label class="lockopt"><input type="checkbox" id="nLock" checked> Lock this slot when I add it</label>
+      </details>
+      <div class="go"><button class="primary" type="submit" style="width:100%">Add slot</button></div>
+    </form>
+    <div class="status" id="status" role="status">Connecting…</div>
+    <div class="bar">
+      <h2 id="countLabel">Slots</h2>
+      <div class="btns"><button type="button" class="csvDl">Download CSV</button><button type="button" class="csvCopy">Copy CSV</button></div>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <section class="view" id="v-overview">
+    <div class="bar" style="margin-top:0">
+      <h2>All slots, in order</h2>
+      <div class="btns"><button type="button" class="csvDl">Download CSV</button></div>
+    </div>
+    <div class="legend"><span><i class="sw" style="--c:var(--in)"></i>Went in</span><span><i class="sw" style="--c:var(--out)"></i>Came out</span><span><i class="sw" style="--c:var(--past)"></i>Walked past</span></div>
+    <div id="overview"></div>
+  </section>
+
+  <section class="view" id="v-dashboard">
+    <div id="dash"></div>
+  </section>
 </div>
+
+<div id="tip" role="tooltip"></div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="eTitle">
   <form class="panel" id="editForm">
-    <h2 id="eTitle" style="font:700 22px Archivo,sans-serif;margin:0 0 14px">Edit slot</h2>
+    <h2 id="eTitle" style="margin:0 0 14px">Edit slot</h2>
     <div class="grid dt">
       <div><label for="eDate">Date</label><input type="date" id="eDate" required></div>
       <div><label for="eStart">Start</label><input type="time" id="eStart" required></div>
@@ -139,58 +225,187 @@ button{-webkit-appearance:none;appearance:none;font:600 15px Inter,-apple-system
 {
 const SUPABASE_URL='https://cpesebxsuioragxbhrtf.supabase.co';
 const SUPABASE_KEY='sb_publishable_i_o4QyVnDcm3dqMozBzEvA_pImFSzW-';
+const LOCATION='LSE Library — John Watkins Plaza';
 
 const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LOCATION='LSE Library — John Watkins Plaza';
 const CATS=[['in','Went in','--in'],['out','Came out','--out'],['past','Walked past','--past']];
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null;
+const LOCK_ICON='<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.5" width="8" height="5.5" rx="1.2" fill="currentColor"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+let sb=null,slots=[],loaded=false,confirmDel=null,editId=null,inflight=0,refetchTimer=null,view='count';
 
 const status=t=>{$('#status').textContent=t};
 const pad=n=>String(n).padStart(2,'0');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
 const nowTime=(plus=0)=>{const d=new Date(Date.now()+plus*60000);d.setMinutes(Math.floor(d.getMinutes()/15)*15);return pad(d.getHours())+':'+pad(d.getMinutes())};
-const dayOf=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return DAYS[new Date(y,m-1,d).getDay()]||''};
-const fmtDate=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
+const dateObj=s=>{const [y,m,d]=(s||'').split('-').map(Number);return new Date(y,m-1,d)};
+const dayOf=s=>s?DAYS[dateObj(s).getDay()]||'':'';
+const fmtDate=s=>s?dateObj(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+const shortDate=s=>s?dateObj(s).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
 const hm=s=>(s||'').slice(0,5);
 const mins=(a,b)=>{if(!a||!b)return 0;const [h1,m1]=a.split(':').map(Number),[h2,m2]=b.split(':').map(Number);let x=(h2*60+m2)-(h1*60+m1);if(x<0)x+=1440;return x};
 const cnt=(s,k)=>Number(s[k+'_count'])||0;
+const tot=s=>cnt(s,'in')+cnt(s,'out')+cnt(s,'past');
 const errMsg=e=>e?.message||String(e);
+const chrono=()=>[...slots].sort((a,b)=>((a.slot_date||'')+hm(a.start_time)).localeCompare((b.slot_date||'')+hm(b.start_time))||String(a.created_at).localeCompare(String(b.created_at)));
+const fmt=n=>Number.isFinite(n)?n.toLocaleString('en-GB'):'—';
+const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+const r1=n=>Math.round(n*10)/10;
+
+/* ---------- views ---------- */
+function setView(v){
+  view=['count','overview','dashboard'].includes(v)?v:'count';
+  for(const a of $$('.tabs a'))a.setAttribute('aria-current',a.dataset.v===view?'page':'false');
+  for(const s of $$('.view'))s.classList.toggle('on',s.id==='v-'+view);
+  render();
+}
+window.addEventListener('hashchange',()=>setView(location.hash.slice(1)));
 
 function render(){
+  if(view==='count')renderCount();
+  else if(view==='overview')renderOverview();
+  else renderDash();
+}
+
+/* ---------- count view ---------- */
+function renderCount(){
   const list=$('#list');
-  const sorted=[...slots].sort((a,b)=>((b.slot_date||'')+(b.start_time||'')).localeCompare((a.slot_date||'')+(a.start_time||''))||String(b.created_at).localeCompare(String(a.created_at)));
+  const sorted=chrono().reverse();
   $('#countLabel').textContent=sorted.length?`Slots (${sorted.length})`:'Slots';
   if(!sorted.length){list.innerHTML=loaded?'<div class="empty">No slots yet. Add one above to start counting.</div>':'';return}
   list.innerHTML=sorted.map(s=>{
-    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=t.in+t.out+t.past,dur=mins(s.start_time,s.end_time);
+    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=tot(s),dur=mins(s.start_time,s.end_time),L=!!s.locked,id=esc(s.id);
     const ctrs=CATS.map(([k,nm,c])=>`<div class="ctr" style="--c:var(${c})"><div class="nm">${nm}</div><div class="n">${t[k]}</div>
-      <div class="plus"><button type="button" data-a="minus" data-s="${esc(s.id)}" data-k="${k}" aria-label="Minus one ${nm}">−</button><button type="button" class="add" data-a="plus" data-s="${esc(s.id)}" data-k="${k}" aria-label="Add one ${nm}">+</button></div>
+      ${L?'':`<div class="plus"><button type="button" data-a="minus" data-s="${id}" data-k="${k}" aria-label="Minus one ${nm}">−</button><button type="button" class="add" data-a="plus" data-s="${id}" data-k="${k}" aria-label="Add one ${nm}">+</button></div>`}
       <div class="rate">${sum?Math.round(t[k]/sum*100)+'% of slot':'—'}${dur?` · ${Math.round(t[k]/dur*60)}/hour`:''}</div></div>`).join('');
-    const conf=confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts? This can't be undone.</b><button type="button" data-a="cancelDel">Cancel</button><button type="button" class="del" data-a="doDel" data-s="${esc(s.id)}">Delete</button></div>`:'';
-    return `<section class="slot"><div class="head"><div><div class="when">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))} · <span>${esc(hm(s.start_time))}${s.end_time?'–'+esc(hm(s.end_time)):''}</span></div>
-      <div class="meta">${esc(LOCATION)} · ${dur?dur+' min · ':''}${sum} people${s.place?' · '+esc(s.place):''}</div></div>
-      <div class="acts"><button type="button" data-a="edit" data-s="${esc(s.id)}">Edit / enter counts</button><button type="button" data-a="askDel" data-s="${esc(s.id)}">Delete</button></div></div>
+    const acts=L?`<button type="button" data-a="unlock" data-s="${id}">Edit</button>`
+      :`<button type="button" data-a="edit" data-s="${id}">Edit</button><button type="button" class="primary" data-a="lock" data-s="${id}">Save &amp; lock</button><button type="button" data-a="askDel" data-s="${id}">Delete</button>`;
+    const conf=!L&&confirmDel===s.id?`<div class="confirm"><b>Delete this slot and its counts? This can't be undone.</b><button type="button" data-a="cancelDel">Cancel</button><button type="button" class="del" data-a="doDel" data-s="${id}">Delete</button></div>`:'';
+    return `<section class="slot${L?' locked':''}" id="slot-${id}"><div class="head"><div><div class="when">${esc(dayOf(s.slot_date))} ${esc(fmtDate(s.slot_date))} · <span>${esc(hm(s.start_time))}${s.end_time?'–'+esc(hm(s.end_time)):''}</span></div>
+      <div class="meta">${dur?dur+' min · ':''}${sum} people${s.place?' · '+esc(s.place):''}</div>
+      ${L?`<span class="badge">${LOCK_ICON}Locked — tap Edit to change</span>`:'<span class="badge open">Counting · not locked</span>'}</div>
+      <div class="acts">${acts}</div></div>
       <div class="counters">${ctrs}</div>${conf}</section>`}).join('');
 }
 
+/* ---------- overview ---------- */
+function stack(t,sum,title){
+  if(!sum)return '<div class="stackbar"><i style="--c:var(--track);flex:1"></i></div>';
+  return `<div class="stackbar">${CATS.map(([k,nm,c])=>t[k]?`<i style="--c:var(${c});flex:${t[k]}" data-tip="${esc((title?title+' · ':'')+nm+': '+t[k]+' ('+pct(t[k],sum)+')')}"></i>`:'').join('')}</div>`;
+}
+function renderOverview(){
+  const box=$('#overview'),c=chrono();
+  if(!c.length){box.innerHTML='<div class="empty">No slots yet. Add slots in the Count tab.</div>';return}
+  const days=[];
+  for(const s of c){const last=days[days.length-1];if(last&&last.date===s.slot_date)last.items.push(s);else days.push({date:s.slot_date,items:[s]})}
+  box.innerHTML=days.map(d=>{
+    const dt={in:0,out:0,past:0};let dm=0;for(const s of d.items){for(const [k] of CATS)dt[k]+=cnt(s,k);dm+=mins(s.start_time,s.end_time)}
+    const dsum=dt.in+dt.out+dt.past;
+    return `<div class="day"><div class="dayhead"><b>${esc(dayOf(d.date))} ${esc(fmtDate(d.date))}</b><small>${d.items.length} slot${d.items.length>1?'s':''}${dm?' · '+dm+' min':''} · ${fmt(dsum)} people</small></div>
+    ${d.items.map(s=>{const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},sum=tot(s),dur=mins(s.start_time,s.end_time);
+      return `<a class="orow" href="#count" data-go="${esc(s.id)}"><div class="t">${esc(hm(s.start_time))}${s.end_time?'–'+esc(hm(s.end_time)):''}<small>${dur?dur+' min':'no end time'}${s.locked?' · locked':''}</small></div>
+      <div><div class="nums"><span>In <b>${t.in}</b></span><span>Out <b>${t.out}</b></span><span>Past <b>${t.past}</b></span></div>${stack(t,sum,hm(s.start_time))}${s.place?`<div class="note">${esc(s.place)}</div>`:''}</div>
+      <div class="tot">${fmt(sum)}<small>${dur&&sum?Math.round(sum/dur*60)+'/hour':'total'}</small></div></a>`}).join('')}</div>`}).join('');
+}
+$('#overview').addEventListener('click',e=>{
+  const r=e.target.closest('.orow');if(!r)return;e.preventDefault();
+  const id=r.dataset.go;location.hash='#count';
+  requestAnimationFrame(()=>{const el=document.getElementById('slot-'+id);if(el){el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}});
+});
+
+/* ---------- dashboard ---------- */
+function agg(list){
+  const t={in:0,out:0,past:0,min:0,timed:{in:0,out:0,past:0}};
+  for(const s of list){for(const [k] of CATS)t[k]+=cnt(s,k);const m=mins(s.start_time,s.end_time);if(m){t.min+=m;for(const [k] of CATS)t.timed[k]+=cnt(s,k)}}
+  t.sum=t.in+t.out+t.past;
+  t.rate=k=>t.min?t.timed[k]/t.min*60:0;
+  t.rateAll=t.min?(t.timed.in+t.timed.out+t.timed.past)/t.min*60:0;
+  return t;
+}
+function rateChart(rows,unit){
+  const max=Math.max(...rows.map(r=>r.total),0);
+  if(!max)return '<p class="cnote">Not enough timed slots yet.</p>';
+  return rows.map(r=>`<div class="crow"><div class="lb">${r.label}</div>
+    <div style="width:${(r.total/max*100).toFixed(2)}%"><div class="stackbar">${CATS.map(([k,nm,c])=>r.v[k]>0?`<i style="--c:var(${c});flex:${r.v[k]}" data-tip="${esc(r.tip+' · '+nm+': '+r1(r.v[k])+unit)}"></i>`:'').join('')}</div></div>
+    <div class="val">${Math.round(r.total)}</div></div>`).join('');
+}
+function renderDash(){
+  const box=$('#dash'),c=chrono();
+  if(!c.length){box.innerHTML='<div class="empty">The dashboard fills in once you have added slots.</div>';return}
+  const a=agg(c),days=new Set(c.map(s=>s.slot_date)).size,untimed=c.filter(s=>!mins(s.start_time,s.end_time)).length;
+  const capture=a.in+a.past?a.in/(a.in+a.past):null;
+  const timed=c.filter(s=>mins(s.start_time,s.end_time));
+  const perSlot=timed.map(s=>{const m=mins(s.start_time,s.end_time);return{s,r:tot(s)/m*60}});
+  const busiest=perSlot.slice().sort((x,y)=>y.r-x.r)[0],quiet=perSlot.slice().sort((x,y)=>x.r-y.r)[0];
+  const capSlots=c.filter(s=>cnt(s,'in')+cnt(s,'past')>=10).map(s=>({s,c:cnt(s,'in')/(cnt(s,'in')+cnt(s,'past'))})).sort((x,y)=>y.c-x.c);
+  const slotLbl=s=>`${shortDate(s.slot_date)}, ${hm(s.start_time)}`;
+  const k=(cls,label,val,sub,sw)=>`<div class="kpi ${cls}"><div class="k">${sw?`<i class="sw" style="--c:var(${sw})"></i>`:''}${label}</div><div class="v">${val}</div><div class="d">${sub}</div></div>`;
+
+  const slotRows=timed.map(s=>{const m=mins(s.start_time,s.end_time),v={};for(const [kk] of CATS)v[kk]=cnt(s,kk)/m*60;return{label:`${esc(dateObj(s.slot_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric'}))} <small>${esc(hm(s.start_time))}</small>`,tip:slotLbl(s),v,total:v.in+v.out+v.past}});
+  const byDay=[1,2,3,4,5,6,0].map(d=>{const l=c.filter(s=>dateObj(s.slot_date).getDay()===d),g=agg(l);return{label:DAYS[d].slice(0,3)+(l.length?` <small>(${l.length})</small>`:''),tip:DAYS[d],v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll,n:g.min}}).filter(r=>r.n);
+  const hours=[...new Set(timed.map(s=>+hm(s.start_time).slice(0,2)))].sort((x,y)=>x-y);
+  const byHour=hours.map(h=>{const l=timed.filter(s=>+hm(s.start_time).slice(0,2)===h),g=agg(l);return{label:`${pad(h)}:00 <small>(${l.length})</small>`,tip:`Slots starting ${pad(h)}:00–${pad(h)}:59`,v:{in:g.rate('in'),out:g.rate('out'),past:g.rate('past')},total:g.rateAll}});
+
+  box.innerHTML=`
+  <div class="kpis">
+    ${k('hero','People observed',fmt(a.sum),`${c.length} slot${c.length>1?'s':''} · ${days} day${days>1?'s':''}${a.min?` · ${r1(a.min/60)} h counted`:''}`)}
+    ${k('','Capture rate',capture==null?'—':Math.round(capture*100)+'%','of people approaching went in')}
+    ${k('','Average footfall',a.min?Math.round(a.rateAll):'—','people per hour')}
+    ${k('','Went in',fmt(a.in),a.min?`${Math.round(a.rate('in'))}/hour`:'&nbsp;','--in')}
+    ${k('','Came out',fmt(a.out),a.min?`${Math.round(a.rate('out'))}/hour`:'&nbsp;','--out')}
+    ${k('','Walked past',fmt(a.past),a.min?`${Math.round(a.rate('past'))}/hour`:'&nbsp;','--past')}
+    ${k('','Net into library',(a.in-a.out>0?'+':'')+fmt(a.in-a.out),'went in minus came out')}
+  </div>
+  <div class="legend"><span><i class="sw" style="--c:var(--in)"></i>Went in</span><span><i class="sw" style="--c:var(--out)"></i>Came out</span><span><i class="sw" style="--c:var(--past)"></i>Walked past</span></div>
+  <div class="charts">
+    <div class="panel full"><h3>People per hour, slot by slot</h3>${rateChart(slotRows,'/hour')}<p class="cnote">Per-hour rates make slots of different lengths comparable.${untimed?` ${untimed} slot${untimed>1?'s have':' has'} no end time and ${untimed>1?'are':'is'} left out of per-hour figures.`:''}</p></div>
+    <div class="panel"><h3>By weekday (people per hour)</h3>${rateChart(byDay,'/hour')}<p class="cnote">Number of slots in brackets.</p></div>
+    <div class="panel"><h3>By time of day (people per hour)</h3>${rateChart(byHour,'/hour')}<p class="cnote">Grouped by the hour each slot started.</p></div>
+    <div class="panel full"><h3>Highlights</h3><div class="facts">
+      ${busiest?`<div class="fact"><span>Busiest slot</span><b>${esc(slotLbl(busiest.s))} · ${Math.round(busiest.r)}/hour</b></div>`:''}
+      ${quiet&&perSlot.length>1?`<div class="fact"><span>Quietest slot</span><b>${esc(slotLbl(quiet.s))} · ${Math.round(quiet.r)}/hour</b></div>`:''}
+      ${capSlots.length?`<div class="fact"><span>Highest capture rate</span><b>${esc(slotLbl(capSlots[0].s))} · ${Math.round(capSlots[0].c*100)}%</b></div>`:''}
+      ${capSlots.length>1?`<div class="fact"><span>Lowest capture rate</span><b>${esc(slotLbl(capSlots[capSlots.length-1].s))} · ${Math.round(capSlots[capSlots.length-1].c*100)}%</b></div>`:''}
+      <div class="fact"><span>Share walking past</span><b>${pct(a.past,a.sum)} of everyone observed</b></div>
+      <div class="fact"><span>Locked slots</span><b>${c.filter(s=>s.locked).length} of ${c.length}</b></div>
+    </div><p class="cnote">Capture rate = went in ÷ (went in + walked past). Slot capture rates only count slots with at least 10 people approaching.</p></div>
+  </div>`;
+}
+
+/* hover / tap tooltips on bars */
+const tip=$('#tip');
+function showTip(e){const t=e.target.closest('[data-tip]');if(!t){tip.style.display='none';return}
+  tip.textContent=t.dataset.tip;tip.style.display='block';
+  const x=Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8),y=e.clientY-tip.offsetHeight-12;
+  tip.style.left=Math.max(8,x)+'px';tip.style.top=(y<8?e.clientY+16:y)+'px'}
+document.addEventListener('pointermove',showTip);
+document.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')showTip(e)});
+document.addEventListener('scroll',()=>{tip.style.display='none'},{passive:true});
+
+/* ---------- data ---------- */
 async function load(){
   const {data,error}=await sb.from('slots').select('*');
   if(error){status('Could not load: '+errMsg(error));return}
   slots=data||[];loaded=true;render();status('Live · synced with everyone');
 }
 function scheduleRefetch(){if(inflight)return;clearTimeout(refetchTimer);refetchTimer=setTimeout(load,250)}
+function replace(row){const i=slots.findIndex(x=>x.id===row.id);if(i>=0)slots[i]=row;else slots.push(row);render()}
 
 async function bump(id,k,d){
-  const s=slots.find(x=>x.id===id);if(!s)return;
+  const s=slots.find(x=>x.id===id);if(!s||s.locked)return;
   if(d<0&&cnt(s,k)<=0)return;
   s[k+'_count']=cnt(s,k)+d;render();
   inflight++;
   const {data,error}=await sb.rpc('bump',{p_id:id,p_field:k,p_delta:d});
   inflight--;
-  if(error){s[k+'_count']=cnt(s,k)-d;render();status('Tap not saved: '+errMsg(error));return}
-  if(!inflight){const i=slots.findIndex(x=>x.id===id);if(i>=0&&data&&data.id){slots[i]=data;render()}}
+  if(error){s[k+'_count']=cnt(s,k)-d;render();status('Tap not saved: '+errMsg(error));scheduleRefetch();return}
+  if(!inflight&&data&&data.id)replace(data);
+}
+async function setLock(id,v){
+  const {data,error}=await sb.from('slots').update({locked:v}).eq('id',id).select().single();
+  if(error){status((/locked/.test(errMsg(error))?'Run the lock update SQL in Supabase first. ':'Could not change lock: ')+errMsg(error));return}
+  replace(data);status(v?'Slot saved and locked':'Slot unlocked: you can edit it now');
 }
 
 $('#list').addEventListener('click',async e=>{
@@ -198,11 +413,13 @@ $('#list').addEventListener('click',async e=>{
   const a=b.dataset.a,id=b.dataset.s;
   if(a==='plus')bump(id,b.dataset.k,1);
   else if(a==='minus')bump(id,b.dataset.k,-1);
+  else if(a==='lock'){confirmDel=null;setLock(id,true)}
+  else if(a==='unlock')setLock(id,false);
   else if(a==='askDel'){confirmDel=id;render()}
   else if(a==='cancelDel'){confirmDel=null;render()}
   else if(a==='doDel'){confirmDel=null;const {error}=await sb.from('slots').delete().eq('id',id);
     if(error)status('Could not delete: '+errMsg(error));else{slots=slots.filter(x=>x.id!==id);render();status('Slot deleted')}}
-  else if(a==='edit'){const s=slots.find(x=>x.id===id);if(!s)return;editId=id;
+  else if(a==='edit'){const s=slots.find(x=>x.id===id);if(!s||s.locked)return;editId=id;
     $('#eDate').value=s.slot_date||'';$('#eStart').value=hm(s.start_time);$('#eEnd').value=hm(s.end_time);$('#ePlace').value=s.place||'';
     $('#eIn').value=cnt(s,'in');$('#eOut').value=cnt(s,'out');$('#ePast').value=cnt(s,'past');
     $('#modal').classList.add('on')}
@@ -212,12 +429,14 @@ const num=id=>Math.max(0,Math.round(Number($(id).value)||0));
 
 $('#newForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!sb){status('Not connected yet.');return}
-  const row={slot_date:$('#nDate').value,start_time:$('#nStart').value,end_time:$('#nEnd').value||null,place:$('#nPlace').value.trim()||null,in_count:num('#nIn'),out_count:num('#nOut'),past_count:num('#nPast')};
+  const paper=$('#paper').open,row={slot_date:$('#nDate').value,start_time:$('#nStart').value,end_time:$('#nEnd').value||null,place:$('#nPlace').value.trim()||null,in_count:paper?num('#nIn'):0,out_count:paper?num('#nOut'):0,past_count:paper?num('#nPast'):0};
+  const lock=paper&&$('#nLock').checked&&(row.in_count||row.out_count||row.past_count);
+  if(lock)row.locked=true;
   const {data,error}=await sb.from('slots').insert(row).select().single();
   if(error){status('Could not add slot: '+errMsg(error));return}
-  slots.push(data);render();
-  $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('.paper').open=false;
-  status(row.in_count||row.out_count||row.past_count?'Slot added with your counts':'Slot added');
+  replace(data);
+  $('#nPlace').value='';for(const id of ['#nIn','#nOut','#nPast'])$(id).value='';$('#paper').open=false;
+  status(lock?'Slot added with your counts and locked':row.in_count||row.out_count||row.past_count?'Slot added with your counts':'Slot added. Start tapping!');
 });
 
 const closeModal=()=>{$('#modal').classList.remove('on');editId=null};
@@ -230,27 +449,28 @@ $('#editForm').addEventListener('submit',async e=>{
   closeModal();
   const {data,error}=await sb.from('slots').update(upd).eq('id',id).select().single();
   if(error){status('Could not update: '+errMsg(error));return}
-  const i=slots.findIndex(x=>x.id===id);if(i>=0)slots[i]=data;render();status('Slot updated');
+  replace(data);status('Slot updated');
 });
 
 function csv(){
   const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const rows=[['Date','Day','Start','End','Minutes','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour']];
-  for(const s of [...slots].sort((a,b)=>((a.slot_date||'')+(a.start_time||'')).localeCompare((b.slot_date||'')+(b.start_time||'')))){
-    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?Math.round(n/d*600)/10:'';
-    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past)]);
+  const rows=[['Date','Day','Start','End','Minutes','Location','Notes','Went in','Came out','Walked past','Total','In per hour','Out per hour','Past per hour','Capture rate %','Locked']];
+  for(const s of chrono()){
+    const t={in:cnt(s,'in'),out:cnt(s,'out'),past:cnt(s,'past')},d=mins(s.start_time,s.end_time),r=n=>d?r1(n/d*60):'';
+    rows.push([s.slot_date,dayOf(s.slot_date),hm(s.start_time),hm(s.end_time),d||'',LOCATION,s.place,t.in,t.out,t.past,t.in+t.out+t.past,r(t.in),r(t.out),r(t.past),t.in+t.past?Math.round(t.in/(t.in+t.past)*100):'',s.locked?'yes':'no']);
   }
   return rows.map(r=>r.map(q).join(',')).join('\n');
 }
-$('#csvDl').addEventListener('click',()=>{
+for(const b of $$('.csvDl'))b.addEventListener('click',()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv()],{type:'text/csv'}));a.download='footfall-'+today()+'.csv';
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
 });
-$('#csvCopy').addEventListener('click',async()=>{
+for(const b of $$('.csvCopy'))b.addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(csv());status('CSV copied. Paste it into Excel or Google Sheets.')}catch(e){status('Copy failed. Use Download CSV instead.')}
 });
 
 $('#nDate').value=today();$('#nStart').value=nowTime();$('#nEnd').value=nowTime(30);
+setView(location.hash.slice(1));
 
 if(!window.supabase){status('Could not load the database library. Check your connection and reload.')}
 else{
